@@ -87,10 +87,8 @@ def main() -> None:
 
     logging.info('Mass processing started')
 
-    original_video = get_original_video()
-    while original_video:
+    while original_video := get_original_video():
         process_file(original_video)
-        original_video = get_original_video()
     else:
         logging.info("There's no file to process")
 

@@ -16,7 +16,6 @@ COPY main.py ./
 
 VOLUME /app/input
 VOLUME /app/output
-VOLUME /app/removing_music.log
 
 # cache model
 ENTRYPOINT ["python3", "main.py"]

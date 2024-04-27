@@ -4,7 +4,7 @@ a Python script to remove music from mp4 video files using [demux](https://githu
 ## setup
 
 - install [ffmpeg](https://ffmpeg.org) in your device
-- install dependncies using pipenv
+- install dependencies using pipenv
 
 ## usage
 

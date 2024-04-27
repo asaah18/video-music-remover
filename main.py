@@ -1,6 +1,7 @@
 import logging
 import subprocess
 import sys
+from itertools import chain
 from pathlib import Path
 
 
@@ -71,7 +72,10 @@ def process_file(original_video: Path):
 def get_original_video() -> Path | None:
     logging.info('Looking for file to process in folder "input"...')
     input_path: Path = Path('input')
-    return next(input_path.glob("*.mp4"), None)
+    extensions = ("mp4", "mkv", "webm")
+    iterable = chain.from_iterable(input_path.glob(f"*.{ext}") for ext in extensions)
+
+    return next(iterable, None)
 
 
 def main() -> None:

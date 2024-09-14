@@ -84,7 +84,7 @@ def main() -> None:
         format='%(asctime)s - %(levelname)s - %(message)s',
         level=logging.INFO,
         handlers=[
-            logging.FileHandler("removing_music.log"),
+            logging.FileHandler("removing_music.log", encoding='utf-8'),
             logging.StreamHandler(sys.stdout)
         ]
     )

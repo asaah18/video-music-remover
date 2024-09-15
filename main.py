@@ -36,17 +36,16 @@ def create_video_without_music(no_music_sound: Path, original_video: Path) -> Pa
     if not already done
     """
     no_music_video: Path = Path(f'output/{original_video.name}')
-    if no_music_video.exists():
-        logging.info(
-            f'"{original_video.name}": a video with no music already exists, skipping creating a new video')
-    else:
-        logging.info(f'"{original_video.name}": creating a new video with no music...')
-        create_no_music_video_command: list[str] = ['ffmpeg', '-i', original_video.absolute(),
-                                                    '-i', no_music_sound.absolute(),
-                                                    '-c:v', 'copy', '-map', '0:v:0', '-map', '1:a:0',
-                                                    no_music_video.absolute()]
-        subprocess.run(create_no_music_video_command, encoding='utf-8', text=True, capture_output=True, check=True)
-        logging.info(f'"{original_video.name}": a new video with no music has been created')
+    # there's no check for the existence of new video with no music because it should be overwritten even if it exists
+    # to ensure that no incomplete video is being created if the process failed in the middle of the process
+    # assuming that original video is deleted by cleanup process when a video without music is created successfully
+    logging.info(f'"{original_video.name}": creating a new video with no music...')
+    create_no_music_video_command: list[str] = ['ffmpeg', '-i', original_video.absolute(),
+                                                '-i', no_music_sound.absolute(),
+                                                '-c:v', 'copy', '-map', '0:v:0', '-map', '1:a:0',
+                                                no_music_video.absolute()]
+    subprocess.run(create_no_music_video_command, encoding='utf-8', text=True, capture_output=True, check=True)
+    logging.info(f'"{original_video.name}": a new video with no music has been created')
     return no_music_video
 
 

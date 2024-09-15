@@ -40,7 +40,7 @@ def create_video_without_music(no_music_sound: Path, original_video: Path) -> Pa
     # to ensure that no incomplete video is being created if the process failed in the middle of the process
     # assuming that original video is deleted by cleanup process when a video without music is created successfully
     logging.info(f'"{original_video.name}": creating a new video with no music...')
-    create_no_music_video_command: list[str] = ['ffmpeg', '-i', original_video.absolute(),
+    create_no_music_video_command: list[str] = ['ffmpeg', '-y', '-i', original_video.absolute(),
                                                 '-i', no_music_sound.absolute(),
                                                 '-c:v', 'copy', '-map', '0:v:0', '-map', '1:a:0',
                                                 no_music_video.absolute()]

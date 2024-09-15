@@ -161,5 +161,10 @@ cython_debug/
 .idea/
 
 
-removing_music.log
+./removing_music.log
 
+/input/*
+!/input/.gitkeep
+
+/output/*
+!/output/.gitkeep

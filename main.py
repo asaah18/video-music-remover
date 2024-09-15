@@ -44,7 +44,7 @@ def create_video_without_music(no_music_sound: Path, original_video: Path) -> Pa
                                                 '-i', no_music_sound.absolute(),
                                                 '-c:v', 'copy', '-map', '0:v:0', '-map', '1:a:0',
                                                 no_music_video.absolute()]
-    subprocess.run(create_no_music_video_command, encoding='utf-8', text=True, capture_output=True, check=True)
+    subprocess.run(create_no_music_video_command, encoding='utf-8', check=True)
     logging.info(f'"{original_video.name}": a new video with no music has been created')
     return no_music_video
 
@@ -63,16 +63,13 @@ def separate_vocal(original_video: Path) -> Path:
         # TODO: export vocal sound as `wav` extension
         remove_music_command: list[str] = ['pipenv', 'run', 'demucs', '--mp3', '--two-stems=vocals',
                                            original_video.absolute()]
-        completed_process = subprocess.run(remove_music_command, encoding='utf-8', text=True,
-                                           capture_output=True,
-                                           check=True)
+        subprocess.run(remove_music_command, encoding='utf-8', check=True)
         # raise exception if vocal sound is not created, exception raised manually
         # because demucs command doesn't return error code
         if not no_music_sound.exists():
-            raise subprocess.CalledProcessError(returncode=1,
-                                                cmd=completed_process.args,
-                                                output=completed_process.stdout,
-                                                stderr=completed_process.stderr)
+            logging.error(
+                f'"{original_video.name}": an error prevented vocal separation process from being completed, refer to terminal for more info')
+            raise subprocess.CalledProcessError(returncode=1, cmd=remove_music_command)
         logging.info(f'"{original_video.name}": vocal seperated successfully')
     return no_music_sound
 

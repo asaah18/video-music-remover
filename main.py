@@ -19,10 +19,13 @@ logging.basicConfig(
 
 
 class RemoveMusicFromVideo:
-    def __init__(self, original_video: Path, music_remover_class: Type[MusicRemover]):
+    def __init__(self, original_video: Path, music_remover_class: Type[MusicRemover], base_directory: Path = None):
+        """:raise ValueError if base directory is not a relative path of original video or not an absolute path"""
         self.__original_video = original_video
         self.__music_remover = music_remover_class(original_video)
-        self.__no_music_video = Path(f'output/{original_video.name}')
+        self.__no_music_video = Path(
+            f'output/{original_video.relative_to(base_directory) if base_directory else original_video.name}'
+        )
 
     def process(self) -> None:
         try:
@@ -54,11 +57,16 @@ class RemoveMusicFromVideo:
         """
         replace the sound of the video with the no music version,
         and save the new video in folder 'output'
-        if not already done
+        regardless of the existence of the new video
         """
         # there's no check for the existence of new video with no music because it should be overwritten even if it exists
         # to ensure that no incomplete video is being created if the process failed in the middle of the process
         # assuming that original video is deleted by cleanup process when a video without music is created successfully
+
+        # create missing directories in the path if exists
+        self.__no_music_video.parent.mkdir(parents=True, exist_ok=True)
+
+        # create video without music
         create_no_music_video_command: list[str] = ['ffmpeg', '-y', '-i', self.__original_video.absolute(),
                                                     '-i', self.__music_remover.no_music_sound.absolute(),
                                                     '-c:v', 'copy', '-map', '0:v:0', '-map', '1:a:0',
@@ -74,22 +82,23 @@ class RemoveMusicFromVideo:
         self.__music_remover.no_music_sound.parent.rmdir()
 
 
-def get_original_video() -> Path | None:
-    logging.info('Looking for file to process in folder "input"...')
-    input_path: Path = Path('input')
+def get_original_video(input_path: Path) -> Path | None:
+    logging.info(f'Looking for file to process in folder "{input_path.absolute()}"...')
     extensions = ("mp4", "mkv", "webm")
-    iterable = chain.from_iterable(input_path.glob(f"*.{ext}") for ext in extensions)
+    iterable = chain.from_iterable(input_path.rglob(f"*.{ext}") for ext in extensions)
 
     return next(iterable, None)
 
 
 def main() -> None:
+    input_path = Path('input')
+
     logging.info('Mass processing started')
 
-    while original_video := get_original_video():
-        logging.info(f'Processing file "{original_video.name}"')
-        RemoveMusicFromVideo(original_video, Demucs).process()
-        logging.info(f'"{original_video.name}": Processing finished')
+    while original_video := get_original_video(input_path):
+        logging.info(f'Processing file "{original_video.relative_to(input_path)}"')
+        RemoveMusicFromVideo(original_video, Demucs, input_path).process()
+        logging.info(f'"{original_video.relative_to(input_path)}": Processing finished')
     else:
         logging.info("There's no file to process")
 

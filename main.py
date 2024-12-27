@@ -5,7 +5,7 @@ from itertools import chain
 from pathlib import Path
 from typing import Type
 
-from music_remover import Demucs, MusicRemover
+from music_remover import DemucsMusicRemover, MusicRemover
 
 logging.basicConfig(
     encoding='utf-8',
@@ -97,7 +97,7 @@ def main() -> None:
 
     while original_video := get_original_video(input_path):
         logging.info(f'Processing file "{original_video.relative_to(input_path)}"')
-        RemoveMusicFromVideo(original_video, Demucs, input_path).process()
+        RemoveMusicFromVideo(original_video, DemucsMusicRemover, input_path).process()
         logging.info(f'"{original_video.relative_to(input_path)}": Processing finished')
     else:
         logging.info("There's no file to process")

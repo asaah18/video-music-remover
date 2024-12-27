@@ -27,7 +27,7 @@ class MusicRemover(ABC):
     pass
 
 
-class Demucs(MusicRemover):
+class DemucsMusicRemover(MusicRemover):
     def _get_no_music_audio_path(self, video_path: Path) -> Path:
         return Path(f'separated/htdemucs/{video_path.stem}/vocals.mp3')
 

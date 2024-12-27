@@ -3,6 +3,9 @@ import subprocess
 import sys
 from itertools import chain
 from pathlib import Path
+from typing import Type
+
+from music_remover import Demucs, MusicRemover
 
 logging.basicConfig(
     encoding='utf-8',
@@ -15,63 +18,60 @@ logging.basicConfig(
 )
 
 
-def cleanup(no_music_sound: Path, original_video: Path) -> None:
-    """
-    delete Intermediate audio files and original video
-    """
-    logging.info(f'"{original_video.name}": deleting original video...')
-    original_video.unlink()
-    logging.info(f'"{original_video.name}": original video deleted successfully')
-    logging.info(f'"{original_video.name}": deleting vocal sound...')
-    for file in [file for file in no_music_sound.parent.iterdir()]:
-        file.unlink()
-    no_music_sound.parent.rmdir()
-    logging.info(f'"{original_video.name}": vocal sound deleted successfully')
+class RemoveMusicFromVideo:
+    def __init__(self, original_video: Path, music_remover_class: Type[MusicRemover]):
+        self.__original_video = original_video
+        self.__music_remover = music_remover_class(original_video)
+        self.__no_music_video = Path(f'output/{original_video.name}')
 
-
-def create_video_without_music(no_music_sound: Path, original_video: Path) -> Path:
-    """
-    replace the sound of the video with the no music version,
-    and save the new video in folder 'output'
-    if not already done
-    """
-    no_music_video: Path = Path(f'output/{original_video.name}')
-    # there's no check for the existence of new video with no music because it should be overwritten even if it exists
-    # to ensure that no incomplete video is being created if the process failed in the middle of the process
-    # assuming that original video is deleted by cleanup process when a video without music is created successfully
-    logging.info(f'"{original_video.name}": creating a new video with no music...')
-    create_no_music_video_command: list[str] = ['ffmpeg', '-y', '-i', original_video.absolute(),
-                                                '-i', no_music_sound.absolute(),
-                                                '-c:v', 'copy', '-map', '0:v:0', '-map', '1:a:0',
-                                                no_music_video.absolute()]
-    subprocess.run(create_no_music_video_command, encoding='utf-8', check=True)
-    logging.info(f'"{original_video.name}": a new video with no music has been created')
-    return no_music_video
-
-
-def separate_vocal(original_video: Path) -> Path:
-    """
-    separate vocal from music using demucs machine learning algorithm
-
-    :exception subprocess.CalledProcessError
-    """
-    no_music_sound: Path = Path(f'separated/htdemucs/{original_video.stem}/vocals.mp3')
-    if no_music_sound.exists():
-        logging.info(f'"{original_video.name}": vocal already separated, skipping separating vocal')
-    else:
-        logging.info(f'"{original_video.name}": start separating vocal...')
-        # TODO: export vocal sound as `wav` extension
-        remove_music_command: list[str] = ['pipenv', 'run', 'demucs', '--mp3', '--two-stems=vocals',
-                                           original_video.absolute()]
-        subprocess.run(remove_music_command, encoding='utf-8', check=True)
-        # raise exception if vocal sound is not created, exception raised manually
-        # because demucs command doesn't return error code
-        if not no_music_sound.exists():
+    def process(self) -> None:
+        try:
+            if self.__music_remover.no_music_sound.exists():
+                logging.info(f'"{self.__original_video.name}": vocal already separated, skipping separating vocal')
+            else:
+                logging.info(f'"{self.__original_video.name}": start separating vocal...')
+                self.__music_remover.remove_music()
+                logging.info(f'"{self.__original_video.name}": vocal seperated successfully')
+        except subprocess.CalledProcessError as error:
             logging.error(
-                f'"{original_video.name}": an error prevented vocal separation process from being completed, refer to terminal for more info')
-            raise subprocess.CalledProcessError(returncode=1, cmd=remove_music_command)
-        logging.info(f'"{original_video.name}": vocal seperated successfully')
-    return no_music_sound
+                f'"{self.__original_video.name}": an error prevented vocal separation process from being completed, refer to terminal for more info'
+            )
+            raise error
+
+        logging.info(f'"{self.__original_video.name}": creating a new video with no music...')
+        self.__create_video_without_music()
+        logging.info(f'"{self.__original_video.name}": a new video with no music has been created')
+
+        logging.info(f'"{self.__original_video.name}": deleting original video...')
+        self.__cleanup_original_video()
+        logging.info(f'"{self.__original_video.name}": original video deleted successfully')
+
+        logging.info(f'"{self.__original_video.name}": deleting vocal sound...')
+        self.__cleanup_intermediate_audio()
+        logging.info(f'"{self.__original_video.name}": vocal sound deleted successfully')
+
+    def __create_video_without_music(self) -> None:
+        """
+        replace the sound of the video with the no music version,
+        and save the new video in folder 'output'
+        if not already done
+        """
+        # there's no check for the existence of new video with no music because it should be overwritten even if it exists
+        # to ensure that no incomplete video is being created if the process failed in the middle of the process
+        # assuming that original video is deleted by cleanup process when a video without music is created successfully
+        create_no_music_video_command: list[str] = ['ffmpeg', '-y', '-i', self.__original_video.absolute(),
+                                                    '-i', self.__music_remover.no_music_sound.absolute(),
+                                                    '-c:v', 'copy', '-map', '0:v:0', '-map', '1:a:0',
+                                                    self.__no_music_video.absolute()]
+        subprocess.run(create_no_music_video_command, encoding='utf-8', check=True)
+
+    def __cleanup_original_video(self) -> None:
+        self.__original_video.unlink()
+
+    def __cleanup_intermediate_audio(self) -> None:
+        for file in [file for file in self.__music_remover.no_music_sound.parent.iterdir()]:
+            file.unlink()
+        self.__music_remover.no_music_sound.parent.rmdir()
 
 
 def get_original_video() -> Path | None:
@@ -88,9 +88,7 @@ def main() -> None:
 
     while original_video := get_original_video():
         logging.info(f'Processing file "{original_video.name}"')
-        no_music_sound: Path = separate_vocal(original_video)
-        create_video_without_music(no_music_sound, original_video)
-        cleanup(no_music_sound, original_video)
+        RemoveMusicFromVideo(original_video, Demucs).process()
         logging.info(f'"{original_video.name}": Processing finished')
     else:
         logging.info("There's no file to process")

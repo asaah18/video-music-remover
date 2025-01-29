@@ -5,17 +5,11 @@ from itertools import chain
 from pathlib import Path
 from typing import Type
 
-from music_remover import DemucsMusicRemover, MusicRemover
+import typer
 
-logging.basicConfig(
-    encoding='utf-8',
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    level=logging.INFO,
-    handlers=[
-        logging.FileHandler("removing_music.log", encoding='utf-8'),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
+from music_remover import MusicRemover, DemucsMusicRemover
+
+app = typer.Typer()
 
 
 class RemoveMusicFromVideo:
@@ -90,7 +84,7 @@ def get_original_video(input_path: Path) -> Path | None:
     return next(iterable, None)
 
 
-def main() -> None:
+def process_files() -> None:
     input_path = Path('input')
 
     logging.info('Mass processing started')
@@ -105,6 +99,20 @@ def main() -> None:
     logging.info('Mass processing finished')
 
 
+@app.command()
+def main():
+    logging.basicConfig(
+        encoding='utf-8',
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        level=logging.INFO,
+        handlers=[
+            logging.FileHandler("removing_music.log", encoding='utf-8'),
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
+
+    process_files()
+
+
 if __name__ == "__main__":
-    # encapsulating the code of this block in a function ensures that scope of variables is not global
-    sys.exit(main())
+    app()

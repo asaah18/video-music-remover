@@ -1,0 +1,10 @@
+[project]
+name = "video-music-remover"
+version = "0.1.0"
+description = "a cli tool to remove music from videos"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "demucs>=4.0.1",
+    "typer>=0.15.1",
+]

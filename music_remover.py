@@ -32,7 +32,7 @@ class DemucsMusicRemover(MusicRemover):
         return Path(f'separated/htdemucs/{video_path.stem}/vocals.mp3')
 
     def remove_music(self) -> None:
-        remove_music_command: list[str] = ['pipenv', 'run', 'demucs', '--mp3', '--two-stems=vocals',
+        remove_music_command: list[str] = ['uv', 'run', 'demucs', '--mp3', '--two-stems=vocals',
                                            self._original_video.absolute()]
         subprocess.run(remove_music_command, encoding='utf-8', check=True)
         # raise exception if vocal sound is not created

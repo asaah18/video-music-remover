@@ -22,18 +22,12 @@ class RemoveMusicFromVideo:
         )
 
     def process(self) -> None:
-        try:
-            if self.__music_remover.no_music_sound.exists():
-                logging.info(f'"{self.__original_video.name}": vocal already separated, skipping separating vocal')
-            else:
-                logging.info(f'"{self.__original_video.name}": start separating vocal...')
-                self.__music_remover.remove_music()
-                logging.info(f'"{self.__original_video.name}": vocal seperated successfully')
-        except subprocess.CalledProcessError as error:
-            logging.error(
-                f'"{self.__original_video.name}": an error prevented vocal separation process from being completed, refer to terminal for more info'
-            )
-            raise error
+        if self.__music_remover.no_music_sound.exists():
+            logging.info(f'"{self.__original_video.name}": vocal already separated, skipping separating vocal')
+        else:
+            logging.info(f'"{self.__original_video.name}": start separating vocal...')
+            self.__music_remover.remove_music()
+            logging.info(f'"{self.__original_video.name}": vocal seperated successfully')
 
         logging.info(f'"{self.__original_video.name}": creating a new video with no music...')
         self.__create_video_without_music()

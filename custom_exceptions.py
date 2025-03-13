@@ -1,0 +1,2 @@
+class UnsupportedFileError(ValueError):
+    pass

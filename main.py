@@ -1,3 +1,4 @@
+import errno
 import logging
 import subprocess
 import sys
@@ -8,6 +9,7 @@ from typing import Type
 
 import typer
 
+from custom_exceptions import UnsupportedFileError
 from music_remover import MusicRemover, DemucsMusicRemover
 
 app = typer.Typer()
@@ -67,25 +69,48 @@ class RemoveMusicFromVideo:
         self.__original_video.unlink()
 
 
+extensions = (".mp4", ".mkv", ".webm")
+
+
+def is_supported_file(file: Path) -> bool:
+    return file.suffix in extensions
+
+
 def get_original_video(input_path: Path) -> Path | None:
     logging.info(f'Looking for file to process in folder "{input_path.absolute()}"...')
-    extensions = ("mp4", "mkv", "webm")
-    iterable = chain.from_iterable(input_path.rglob(f"*.{ext}") for ext in extensions)
+    iterable = chain.from_iterable(input_path.rglob(f"*{ext}") for ext in extensions)
 
     return next(iterable, None)
 
 
-def process_files() -> None:
-    input_path = Path('input')
+def validate_input_path(input_path: Path) -> None:
+    """
+    :raises FileNotFoundError
+    :raises UnsupportedFileError
+    """
+    if not input_path.exists():
+        raise FileNotFoundError(errno.ENOENT, 'No folder or file exists at the location specified',
+                                input_path.resolve())
 
-    logging.info('Mass processing started')
+    if input_path.is_file() and not is_supported_file(input_path):
+        raise UnsupportedFileError('this file is not a supported file type', input_path.resolve())
 
-    while original_video := get_original_video(input_path):
-        RemoveMusicFromVideo(original_video, DemucsMusicRemover, input_path).process()
+
+def process_files(input_path: Path) -> None:
+    validate_input_path(input_path)
+
+    if input_path.is_dir():
+        logging.info('Mass processing started')
+
+        while original_video := get_original_video(input_path):
+            RemoveMusicFromVideo(original_video.resolve(), DemucsMusicRemover, input_path.resolve()).process()
+        else:
+            logging.info("There's no file to process")
+
+        logging.info('Mass processing finished')
     else:
-        logging.info("There's no file to process")
-
-    logging.info('Mass processing finished')
+        # input is an existing file
+        RemoveMusicFromVideo(input_path.resolve(), DemucsMusicRemover).process()
 
 
 @app.command()
@@ -100,7 +125,7 @@ def main():
         ]
     )
 
-    process_files()
+    process_files(Path('input'))
 
 
 if __name__ == "__main__":

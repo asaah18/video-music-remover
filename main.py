@@ -120,7 +120,7 @@ def cli_validate_input_path(ctx: typer.Context, input_path: Path) -> Path | None
     :raises typer.BadParameter with a message clarifying the error
     """
     if ctx.resilient_parsing:
-        return
+        return None
 
     try:
         validate_input_path(input_path)

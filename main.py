@@ -5,7 +5,7 @@ import sys
 from itertools import chain
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Type
+from typing import Type, Annotated
 
 import typer
 
@@ -113,8 +113,29 @@ def process_files(input_path: Path) -> None:
         RemoveMusicFromVideo(input_path.resolve(), DemucsMusicRemover).process()
 
 
+# CLI code
+
+def cli_validate_input_path(ctx: typer.Context, input_path: Path) -> Path | None:
+    """
+    :raises typer.BadParameter with a message clarifying the error
+    """
+    if ctx.resilient_parsing:
+        return
+
+    try:
+        validate_input_path(input_path)
+        return input_path
+    except UnsupportedFileError:
+        raise typer.BadParameter('not a supported file type')
+
+
 @app.command()
-def main():
+def main(input_path: Annotated[
+    Path, typer.Argument(help="input file or directory to remove music from", callback=cli_validate_input_path,
+                         exists=True, resolve_path=True)]):
+    """
+    remove music from a directory with videos or a single video
+    """
     logging.basicConfig(
         encoding='utf-8',
         format='%(asctime)s - %(levelname)s - %(message)s',
@@ -125,7 +146,7 @@ def main():
         ]
     )
 
-    process_files(Path('input'))
+    process_files(input_path)
 
 
 if __name__ == "__main__":

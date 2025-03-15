@@ -9,7 +9,7 @@ from typing import Type, Annotated
 
 import typer
 
-from custom_exceptions import UnsupportedFileError
+from custom_exceptions import UnsupportedFileError, DirectoriesConflictError
 from music_remover import MusicRemover, DemucsMusicRemover
 
 app = typer.Typer()
@@ -96,9 +96,28 @@ def validate_input_path(input_path: Path) -> None:
         raise UnsupportedFileError('this file is not a supported file type', input_path.resolve())
 
 
-def process_files(input_path: Path) -> None:
-    validate_input_path(input_path)
+def validate_output_path(output_path: Path, input_path: Path) -> None:
+    """
+    output path should be an existing directory which is not a parent or a child or an exact directory of input_path
+    :raises FileNotFoundError if output_path does not exist
+    :raises NotADirectoryError if output_path is not a directory
+    :raises DirectoriesConflictError if output_path is a parent or a child or an exact directory of input_path
+    """
+    if not output_path.exists():
+        raise FileNotFoundError(errno.ENOENT, 'No folder or file exists at the location specified',
+                                output_path.resolve())
+    if output_path.is_file():
+        raise NotADirectoryError(errno.ENOTDIR, 'output path should not be a file', output_path.resolve())
+    if input_path.is_relative_to(output_path) or output_path.is_relative_to(input_path):
+        raise DirectoriesConflictError("output_Path should not be a child or a parent or an exact of the input path",
+                                       input_path.resolve(), output_path.resolve())
 
+
+def process_files(input_path: Path, output_path: Path) -> None:
+    validate_input_path(input_path)
+    validate_output_path(output_path=output_path, input_path=input_path)
+
+    # TODO: pass output directory to RemoveMusicFromVideo
     if input_path.is_dir():
         logging.info('Mass processing started')
 
@@ -129,10 +148,34 @@ def cli_validate_input_path(ctx: typer.Context, input_path: Path) -> Path | None
         raise typer.BadParameter('not a supported file type')
 
 
+def cli_validate_output_path(ctx: typer.Context, output_path: Path) -> Path | None:
+    """
+    :raises typer.BadParameter with a message clarifying the error
+    """
+    if ctx.resilient_parsing:
+        return None
+
+    try:
+        validate_output_path(output_path=output_path, input_path=ctx.params['input_path'])
+        return output_path
+    except DirectoriesConflictError:
+        raise typer.BadParameter("can't be a parent or a child or an exact directory of input_path")
+
+
 @app.command()
-def main(input_path: Annotated[
-    Path, typer.Argument(help="input file or directory to remove music from", callback=cli_validate_input_path,
-                         exists=True, resolve_path=True)]):
+def main(
+        input_path: Annotated[
+            Path, typer.Argument(help="file or directory to remove music from",
+                                 callback=cli_validate_input_path,
+                                 exists=True,
+                                 resolve_path=True)],
+        output_path: Annotated[
+            Path, typer.Argument(help="the directory where video without music is stored",
+                                 exists=True,
+                                 file_okay=False,
+                                 callback=cli_validate_output_path,
+                                 resolve_path=True)]
+):
     """
     remove music from a directory with videos or a single video
     """
@@ -146,7 +189,7 @@ def main(input_path: Annotated[
         ]
     )
 
-    process_files(input_path)
+    process_files(input_path=input_path, output_path=output_path)
 
 
 if __name__ == "__main__":

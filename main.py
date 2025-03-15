@@ -5,7 +5,7 @@ import sys
 from itertools import chain
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Type, Annotated
+from typing import Type, Annotated, Optional
 
 import typer
 
@@ -16,13 +16,18 @@ app = typer.Typer()
 
 
 class RemoveMusicFromVideo:
-    def __init__(self, original_video: Path, music_remover_class: Type[MusicRemover], base_directory: Path = None):
+    def __init__(
+            self,
+            original_video: Path,
+            music_remover_class: Type[MusicRemover],
+            output_directory: Path,
+            base_directory: Optional[Path] = None
+    ):
         """:raise ValueError if base directory is not a relative path of original video or not an absolute path"""
         self.__original_video = original_video
         self.__music_remover_class = music_remover_class
-        self.__no_music_video = Path(
-            f'output/{original_video.relative_to(base_directory) if base_directory else original_video.name}'
-        )
+        self.__no_music_video = output_directory / (original_video.relative_to(
+            base_directory) if base_directory else original_video.name)
 
     def process(self) -> None:
         logging.info(f'Processing file "{self.__original_video.name}"')
@@ -48,7 +53,7 @@ class RemoveMusicFromVideo:
     def __create_video_without_music(self, no_music_sound: Path) -> None:
         """
         replace the sound of the video with the no music version,
-        and save the new video in folder 'output'
+        and save the new video in the output folder
         regardless of the existence of the new video
         """
         # there's no check for the existence of new video with no music because it should be overwritten even if it exists
@@ -117,19 +122,27 @@ def process_files(input_path: Path, output_path: Path) -> None:
     validate_input_path(input_path)
     validate_output_path(output_path=output_path, input_path=input_path)
 
-    # TODO: pass output directory to RemoveMusicFromVideo
     if input_path.is_dir():
         logging.info('Mass processing started')
 
         while original_video := get_original_video(input_path):
-            RemoveMusicFromVideo(original_video.resolve(), DemucsMusicRemover, input_path.resolve()).process()
+            RemoveMusicFromVideo(
+                original_video=original_video.resolve(),
+                music_remover_class=DemucsMusicRemover,
+                output_directory=output_path,
+                base_directory=input_path.resolve()
+            ).process()
         else:
             logging.info("There's no file to process")
 
         logging.info('Mass processing finished')
     else:
         # input is an existing file
-        RemoveMusicFromVideo(input_path.resolve(), DemucsMusicRemover).process()
+        RemoveMusicFromVideo(
+            original_video=input_path.resolve(),
+            music_remover_class=DemucsMusicRemover,
+            output_directory=output_path
+        ).process()
 
 
 # CLI code

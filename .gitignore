@@ -163,7 +163,4 @@ cython_debug/
 
 ./removing_music.log
 
-/output/*
-!/output/.gitkeep
-
 /separated/

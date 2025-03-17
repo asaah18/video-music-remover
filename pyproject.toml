@@ -6,5 +6,6 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "demucs>=4.0.1",
+    "pydantic>=2.10.6",
     "typer>=0.15.1",
 ]

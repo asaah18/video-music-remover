@@ -101,11 +101,21 @@ def path_exists(value: Path) -> Path:
     return value
 
 
+def resolve_path(value: Path) -> Path:
+    """
+    resolve path instance
+
+    :raises FileNotFoundError if path does not exist
+    """
+    return value.resolve(True)
+
+
 class MusicRemoverData(BaseModel):
     model_config = ConfigDict(strict=True, extra='forbid', frozen=True)
 
-    input_path: Annotated[Path, AfterValidator(path_exists), AfterValidator(supported_file)]
-    output_path: DirectoryPath
+    input_path: Annotated[
+        Path, AfterValidator(path_exists), AfterValidator(resolve_path), AfterValidator(supported_file)]
+    output_path: Annotated[DirectoryPath, AfterValidator(resolve_path)]
 
     @model_validator(mode='after')
     def conflicting_directories(self) -> Self:
@@ -132,7 +142,7 @@ def process_files(music_remover_data: MusicRemoverData) -> None:
                 original_video=original_video.resolve(),
                 music_remover_class=DemucsMusicRemover,
                 output_directory=music_remover_data.output_path,
-                base_directory=music_remover_data.input_path.resolve()
+                base_directory=music_remover_data.input_path
             ).process()
         else:
             logging.info("There's no file to process")
@@ -141,7 +151,7 @@ def process_files(music_remover_data: MusicRemoverData) -> None:
     else:
         # input is an existing file
         RemoveMusicFromVideo(
-            original_video=music_remover_data.input_path.resolve(),
+            original_video=music_remover_data.input_path,
             music_remover_class=DemucsMusicRemover,
             output_directory=music_remover_data.output_path
         ).process()
@@ -208,7 +218,7 @@ def main(
         ]
     )
 
-    process_files(MusicRemoverData(input_path=input_path.resolve(), output_path=output_path.resolve()))
+    process_files(MusicRemoverData(input_path=input_path, output_path=output_path))
 
 
 if __name__ == "__main__":

@@ -1,6 +1,5 @@
 import logging
 import subprocess
-import sys
 from itertools import chain
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -31,24 +30,32 @@ class RemoveMusicFromVideo:
 
     def process(self) -> None:
         logging.info(f'Processing file "{self.__original_video.name}"')
+        print(f'Processing file "{self.__original_video.name}"')
 
         # TemporaryDirectory is cleaned up automatically
         with TemporaryDirectory(prefix='music-remover-') as temporary_directory:
             music_remover = self.__music_remover_class(self.__original_video, Path(temporary_directory))
 
             logging.info(f'"{self.__original_video.name}": start separating vocal...')
+            print(f'"{self.__original_video.name}": start separating vocal...')
             music_remover.remove_music()
             logging.info(f'"{self.__original_video.name}": vocal seperated successfully')
+            print(f'"{self.__original_video.name}": vocal seperated successfully')
 
             logging.info(f'"{self.__original_video.name}": creating a new video with no music...')
+            print(f'"{self.__original_video.name}": creating a new video with no music...')
             self.__create_video_without_music(music_remover.no_music_sound)
             logging.info(f'"{self.__original_video.name}": a new video with no music has been created')
+            print(f'"{self.__original_video.name}": a new video with no music has been created')
 
             logging.info(f'"{self.__original_video.name}": deleting original video...')
+            print(f'"{self.__original_video.name}": deleting original video...')
             self.__cleanup_original_video()
             logging.info(f'"{self.__original_video.name}": original video deleted successfully')
+            print(f'"{self.__original_video.name}": original video deleted successfully')
 
         logging.info(f'"{self.__original_video.name}": Processing finished')
+        print(f'"{self.__original_video.name}": Processing finished')
 
     def __create_video_without_music(self, no_music_sound: Path) -> None:
         """
@@ -128,6 +135,7 @@ class MusicRemoverData(BaseModel):
 
 def get_original_video(input_path: Path) -> Path | None:
     logging.info(f'Looking for file to process in folder "{input_path.absolute()}"...')
+    print(f'Looking for file to process in folder "{input_path.absolute()}"...')
     iterable = chain.from_iterable(input_path.rglob(f"*{ext}") for ext in extensions)
 
     return next(iterable, None)
@@ -136,6 +144,7 @@ def get_original_video(input_path: Path) -> Path | None:
 def process_files(music_remover_data: MusicRemoverData) -> None:
     if music_remover_data.input_path.is_dir():
         logging.info('Mass processing started')
+        print('Mass processing started')
 
         while original_video := get_original_video(music_remover_data.input_path):
             RemoveMusicFromVideo(
@@ -146,8 +155,10 @@ def process_files(music_remover_data: MusicRemoverData) -> None:
             ).process()
         else:
             logging.info("There's no file to process")
+            print("There's no file to process")
 
         logging.info('Mass processing finished')
+        print('Mass processing finished')
     else:
         # input is an existing file
         RemoveMusicFromVideo(
@@ -185,6 +196,19 @@ def cli_conflicting_directories(ctx: typer.Context, output_path: Path) -> Path |
         raise typer.BadParameter("can't be a parent or a child or an exact directory of input_path")
 
 
+def cli_is_log_file(ctx: typer.Context, value: Optional[Path]) -> Path | None:
+    """
+    :raises typer.BadParameter with a message clarifying the error
+    """
+    if ctx.resilient_parsing:
+        return None
+
+    if value and value.suffix != ".log":
+        raise typer.BadParameter("must be a log file")
+    else:
+        return value
+
+
 @app.command()
 def main(
         input_path: Annotated[
@@ -203,19 +227,23 @@ def main(
                 callback=cli_conflicting_directories,
                 resolve_path=True
             )
-        ]
+        ],
+        log: Annotated[
+            Path, typer.Option(
+                help="the logging file, if not passed no log will be created",
+                callback=cli_is_log_file,
+                resolve_path=True
+            )
+        ] = None
 ):
     """
     remove music from a directory with videos or a single video
     """
     logging.basicConfig(
+        filename=log,
         encoding='utf-8',
         format='%(asctime)s - %(levelname)s - %(message)s',
-        level=logging.INFO,
-        handlers=[
-            logging.FileHandler("removing_music.log", encoding='utf-8'),
-            logging.StreamHandler(sys.stdout)
-        ]
+        level=logging.INFO
     )
 
     process_files(MusicRemoverData(input_path=input_path, output_path=output_path))

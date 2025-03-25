@@ -7,6 +7,7 @@ from typing import Type, Annotated, Optional
 
 import typer
 from pydantic import BaseModel, ConfigDict, AfterValidator, DirectoryPath, model_validator
+from rich import print as rich_print
 from typing_extensions import Self
 
 from music_remover import MusicRemover, DemucsMusicRemover
@@ -210,7 +211,7 @@ def cli_is_log_file(ctx: typer.Context, value: Optional[Path]) -> Path | None:
 
 
 @app.command()
-def main(
+def remove_music(
         input_path: Annotated[
             Path, typer.Argument(
                 help="file or directory to remove music from",
@@ -247,6 +248,48 @@ def main(
     )
 
     process_files(MusicRemoverData(input_path=input_path, output_path=output_path))
+
+
+@app.command()
+def health_check(debug: Annotated[bool, typer.Option("--debug")] = False) -> None:
+    capture_output = not debug
+    has_error = False
+
+    def print_debug(message: str) -> None:
+        rich_print(f'[bold blue][DEBUG] {message}[/bold blue]')
+
+    def print_error(message: str, prefix: bool) -> None:
+        rich_print(f"[bold red]{'[ERROR] ' if prefix else ''}{message}[/bold red]")
+
+    def print_info(message: str) -> None:
+        rich_print(f"[bold green][INFO] {message}[/bold green]")
+
+    def print_success(message: str) -> None:
+        rich_print(f"[bold green]{message}[/bold green]")
+
+    # ffmpeg
+    if debug:
+        print_debug('running command "ffmpeg -version"')
+    if subprocess.run(["ffmpeg", "-version"], encoding='utf-8', capture_output=capture_output).returncode != 0:
+        print_error('ffmpeg not installed', prefix=True)
+        has_error = True
+    else:
+        print_info("ffmpeg installed")
+
+    # demucs machine learning model
+    if debug:
+        print_debug('running command "uv run demucs -h"')
+    if subprocess.run(['uv', 'run', 'demucs', '-h'], encoding='utf-8', capture_output=capture_output).returncode != 0:
+        print_error("demucs not installed", prefix=True)
+        has_error = True
+    else:
+        print_info("demucs installed")
+
+    if has_error:
+        print_error('There are some issues', prefix=False)
+        exit(1)
+    else:
+        print_success('Everything is ok')
 
 
 if __name__ == "__main__":

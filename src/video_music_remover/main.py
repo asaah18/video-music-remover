@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, AfterValidator, DirectoryPath, model
 from rich import print as rich_print
 from typing_extensions import Self
 
-from music_remover import MusicRemover, HTDemucsMusicRemover
+from video_music_remover.music_remover_models import MusicRemover, HTDemucsMusicRemover
 
 app = typer.Typer()
 

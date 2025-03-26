@@ -9,3 +9,11 @@ dependencies = [
     "pydantic>=2.10.6",
     "typer>=0.15.1",
 ]
+authors = [{ name = "ash", email = "asaah18@gmail.com" }]
+
+[project.scripts]
+video-music-remover = "video_music_remover:cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

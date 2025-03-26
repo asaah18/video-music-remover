@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, AfterValidator, DirectoryPath, model
 from rich import print as rich_print
 from typing_extensions import Self
 
-from music_remover import MusicRemover, DemucsMusicRemover
+from music_remover import MusicRemover, HTDemucsMusicRemover
 
 app = typer.Typer()
 
@@ -150,7 +150,7 @@ def process_files(music_remover_data: MusicRemoverData) -> None:
         while original_video := get_original_video(music_remover_data.input_path):
             RemoveMusicFromVideo(
                 original_video=original_video.resolve(),
-                music_remover_class=DemucsMusicRemover,
+                music_remover_class=HTDemucsMusicRemover,
                 output_directory=music_remover_data.output_path,
                 base_directory=music_remover_data.input_path
             ).process()
@@ -164,7 +164,7 @@ def process_files(music_remover_data: MusicRemoverData) -> None:
         # input is an existing file
         RemoveMusicFromVideo(
             original_video=music_remover_data.input_path,
-            music_remover_class=DemucsMusicRemover,
+            music_remover_class=HTDemucsMusicRemover,
             output_directory=music_remover_data.output_path
         ).process()
 

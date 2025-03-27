@@ -64,8 +64,9 @@ class DemucsMusicRemover(MusicRemover, ABC):
             self._output_directory.absolute(),
         ]
         remove_music_command: list[str] = (
-            ["uv", "run", "demucs"] + options + [self._original_video.absolute()]
+            ["demucs"] + options + [self._original_video.absolute()]
         )
+
         subprocess.run(remove_music_command, encoding="utf-8", check=True)
         # raise exception if vocal sound is not created
         # exception raised manually because demucs command doesn't return error code

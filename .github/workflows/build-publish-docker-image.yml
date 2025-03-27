@@ -1,3 +1,4 @@
+#file: noinspection GrazieInspection
 name: Create and publish a Docker image
 
 on:

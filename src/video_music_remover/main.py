@@ -344,14 +344,11 @@ def health_check(debug: Annotated[bool, typer.Option("--debug")] = False) -> Non
     # demucs machine learning model
     if debug:
         print_debug('running command "uv run demucs -h"')
-    if (
-        subprocess.run(
-            ["uv", "run", "demucs", "-h"],
-            encoding="utf-8",
-            capture_output=capture_output,
-        ).returncode
-        != 0
-    ):
+
+    ffmpeg_health_check = subprocess.run(
+        ["demucs", "-h"], encoding="utf-8", capture_output=capture_output
+    )
+    if ffmpeg_health_check.returncode != 0:
         print_error("demucs not installed", prefix=True)
         has_error = True
     else:

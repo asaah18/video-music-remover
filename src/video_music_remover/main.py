@@ -3,10 +3,16 @@ import subprocess
 from itertools import chain
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Type, Annotated, Optional
+from typing import Annotated, Optional, Type
 
 import typer
-from pydantic import BaseModel, ConfigDict, AfterValidator, DirectoryPath, model_validator
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    DirectoryPath,
+    model_validator,
+)
 from rich import print as rich_print
 from typing_extensions import Self
 

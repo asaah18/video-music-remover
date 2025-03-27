@@ -1,0 +1,23 @@
+name: ruff-action
+
+on:
+  push:
+    branches: ['main']
+
+# There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ruff-check
+        uses: astral-sh/ruff-action@v3.2.2
+        with:
+          # Arguments passed to Ruff. Use `ruff --help` to see available options. Defaults to `check`.
+          args: check
+          src: "./src"
+      - name: ruff-format
+        uses: astral-sh/ruff-action@v3.2.2
+        with:
+          # Arguments passed to Ruff. Use `ruff --help` to see available options. Defaults to `check`.
+          args: format --check
+          src: "./src"

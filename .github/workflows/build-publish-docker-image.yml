@@ -45,3 +45,13 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      - name: ruff-check
+        uses: astral-sh/ruff-action@v3
+        with:
+          # Arguments passed to Ruff. Use `ruff --help` to see available options. Defaults to `check`.
+          args: check
+      - name: ruff-format
+        uses: astral-sh/ruff-action@v3
+        with:
+          # Arguments passed to Ruff. Use `ruff --help` to see available options. Defaults to `check`.
+          args: format --check

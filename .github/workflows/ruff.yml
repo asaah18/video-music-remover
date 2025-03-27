@@ -17,10 +17,11 @@ jobs:
         with:
           # Arguments passed to Ruff. Use `ruff --help` to see available options. Defaults to `check`.
           args: check
-          src: "./src"
+          # Path to a pyproject.toml or requirements.txt file to read the version from.
+          version-file: ./pyproject.toml
       - name: ruff-format
         uses: astral-sh/ruff-action@v3.2.2
         with:
           # Arguments passed to Ruff. Use `ruff --help` to see available options. Defaults to `check`.
           args: format --check
-          src: "./src"
+          version-file: ./pyproject.toml

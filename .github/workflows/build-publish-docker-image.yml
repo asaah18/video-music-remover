@@ -46,4 +46,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - name: ruff-action
-        uses: astral-sh/ruff-action@v3.2.2
+      - uses: astral-sh/ruff-action@v3.2.2
+      - run: ruff check --fix
+      - run: ruff format

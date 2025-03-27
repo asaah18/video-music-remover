@@ -1,7 +1,8 @@
 import subprocess
 from abc import ABC, abstractmethod
+from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Type
 
 
 class MusicRemover(ABC):
@@ -69,3 +70,27 @@ class HTDemucsMusicRemover(DemucsMusicRemover):
 
     def _get_model(self) -> str:
         return "htdemucs"
+
+
+class MDXDemucsMusicRemover(DemucsMusicRemover):
+    """
+    the previous Demucs model
+    """
+
+    def _get_model(self) -> str:
+        return "mdx_extra_q"
+
+
+class MusicRemoverModel(str, Enum):
+    HT_DEMUCS = 'ht_demucs'
+    MDX_DEMUCS = 'mdx_demucs'
+
+    @property
+    def related_class(self) -> Type[MusicRemover]:
+        match self:
+            case MusicRemoverModel.HT_DEMUCS:
+                return HTDemucsMusicRemover
+            case MusicRemoverModel.MDX_DEMUCS:
+                return MDXDemucsMusicRemover
+            case _:
+                raise ValueError('Invalid value')

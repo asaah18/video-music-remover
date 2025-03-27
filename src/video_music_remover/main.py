@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, AfterValidator, DirectoryPath, model
 from rich import print as rich_print
 from typing_extensions import Self
 
-from video_music_remover.music_remover_models import MusicRemover, HTDemucsMusicRemover
+from video_music_remover.music_remover_models import MusicRemover, MusicRemoverModel
 
 app = typer.Typer()
 
@@ -142,7 +142,7 @@ def get_original_video(input_path: Path) -> Path | None:
     return next(iterable, None)
 
 
-def process_files(music_remover_data: MusicRemoverData) -> None:
+def process_files(music_remover_data: MusicRemoverData, model: Type[MusicRemover]) -> None:
     if music_remover_data.input_path.is_dir():
         logging.info('Mass processing started')
         print('Mass processing started')
@@ -150,7 +150,7 @@ def process_files(music_remover_data: MusicRemoverData) -> None:
         while original_video := get_original_video(music_remover_data.input_path):
             RemoveMusicFromVideo(
                 original_video=original_video.resolve(),
-                music_remover_class=HTDemucsMusicRemover,
+                music_remover_class=model,
                 output_directory=music_remover_data.output_path,
                 base_directory=music_remover_data.input_path
             ).process()
@@ -164,7 +164,7 @@ def process_files(music_remover_data: MusicRemoverData) -> None:
         # input is an existing file
         RemoveMusicFromVideo(
             original_video=music_remover_data.input_path,
-            music_remover_class=HTDemucsMusicRemover,
+            music_remover_class=model,
             output_directory=music_remover_data.output_path
         ).process()
 
@@ -235,7 +235,9 @@ def remove_music(
                 callback=cli_is_log_file,
                 resolve_path=True
             )
-        ] = None
+        ] = None,
+        model: Annotated[
+            MusicRemoverModel, typer.Option(help='the machine learning model to use')] = MusicRemoverModel.HT_DEMUCS
 ):
     """
     remove music from a directory with videos or a single video
@@ -247,7 +249,7 @@ def remove_music(
         level=logging.INFO
     )
 
-    process_files(MusicRemoverData(input_path=input_path, output_path=output_path))
+    process_files(MusicRemoverData(input_path=input_path, output_path=output_path), model=model.related_class)
 
 
 @app.command()

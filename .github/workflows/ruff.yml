@@ -13,15 +13,12 @@ jobs:
       pull-requests: read
     steps:
       - name: ruff-check
-        uses: astral-sh/ruff-action@v3.2.2
+        uses: astral-sh/ruff-action@v3
         with:
           # Arguments passed to Ruff. Use `ruff --help` to see available options. Defaults to `check`.
           args: check
-          # Path to a pyproject.toml or requirements.txt file to read the version from.
-          version-file: pyproject.toml
       - name: ruff-format
-        uses: astral-sh/ruff-action@v3.2.2
+        uses: astral-sh/ruff-action@v3
         with:
           # Arguments passed to Ruff. Use `ruff --help` to see available options. Defaults to `check`.
           args: format --check
-          version-file: pyproject.toml

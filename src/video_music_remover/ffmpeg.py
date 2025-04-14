@@ -187,12 +187,12 @@ class VideoProcessor:
         for index, stream in enumerate(self.streams):
             if stream.tags.language:
                 metadata.extend(
-                    [f"-metadata:s:a:{index}", f'language="{stream.tags.language}"']
+                    [f"-metadata:s:a:{index}", f"language={stream.tags.language}"]
                 )
 
             if stream.tags.title:
                 metadata.extend(
-                    [f"-metadata:s:a:{index}", f'title="{stream.tags.title}"']
+                    [f"-metadata:s:a:{index}", f"title={stream.tags.title}"]
                 )
 
         command: list[str] = [

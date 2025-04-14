@@ -1,6 +1,7 @@
 # video-music-remover
 
-a Python script to remove music from mp4 video files using [demux](https://github.com/facebookresearch/demucs) machine
+a Python script to remove music from mp4 and mkv video files using [demux](https://github.com/facebookresearch/demucs)
+machine
 learning model
 
 ## setup
@@ -10,8 +11,10 @@ learning model
 
 ## usage
 
-- copy the videos you want to remove the music from to the folder "input"
-- run the Python module `main.py` using the command `uv run video-music-remover`
+1. run the Python module `main.py` using the command `uv run video-music-remover` and pass the input file/folder and
+   output folder.
 
-the videos without music will be saved to the folder `output` and the original files in `input` folder will be
-**deleted**.
+- note: the videos without music will be saved to the passed output folder and the original file will be **deleted**.
+-
+- note: currently, attachments of "mkv" files are not retained because including them cause an error in output video
+  generation.

@@ -16,6 +16,13 @@ from pydantic import (
 from rich import print as rich_print
 from typing_extensions import Self
 
+from video_music_remover.common import (
+    extensions,
+    supported_file,
+    resolve_path_factory,
+    is_directories_conflicting,
+)
+from video_music_remover.ffmpeg import VideoProcessor
 from video_music_remover.music_remover_models import MusicRemover, MusicRemoverModel
 
 app = typer.Typer()
@@ -37,6 +44,7 @@ class RemoveMusicFromVideo:
             if base_directory
             else original_video.name
         )
+        self.__video_processor = VideoProcessor(original_video)
 
     def process(self) -> None:
         logging.info(f'Processing file "{self.__original_video.name}"')
@@ -44,17 +52,36 @@ class RemoveMusicFromVideo:
 
         # TemporaryDirectory is cleaned up automatically
         with TemporaryDirectory(prefix="music-remover-") as temporary_directory:
-            music_remover = self.__music_remover_class(
-                self.__original_video, Path(temporary_directory)
-            )
+            temporary_path = Path(temporary_directory)
+            input_path = temporary_path.joinpath("input")
+            intermediate_path = temporary_path.joinpath("intermediate")
 
-            logging.info(f'"{self.__original_video.name}": start separating vocal...')
-            print(f'"{self.__original_video.name}": start separating vocal...')
-            music_remover.remove_music()
-            logging.info(
-                f'"{self.__original_video.name}": vocal seperated successfully'
-            )
-            print(f'"{self.__original_video.name}": vocal seperated successfully')
+            input_path.mkdir(parents=True, exist_ok=True)
+            intermediate_path.mkdir(parents=True, exist_ok=True)
+
+            input_audios = self.__video_processor.create_audio_streams(input_path)
+
+            no_music_audios: list[Path] = []
+
+            for index, audio in enumerate(input_audios):
+                music_remover = self.__music_remover_class(audio, intermediate_path)
+
+                counter = f"{index + 1}/{len(self.__video_processor.streams)}"
+
+                logging.info(
+                    f'"{self.__original_video.name}": start separating vocal... {counter}'
+                )
+                print(
+                    f'"{self.__original_video.name}": start separating vocal... {counter}'
+                )
+                music_remover.remove_music()
+                logging.info(
+                    f'"{self.__original_video.name}": vocal seperated successfully {counter}'
+                )
+                print(
+                    f'"{self.__original_video.name}": vocal seperated successfully {counter}'
+                )
+                no_music_audios.append(music_remover.no_music_sound)
 
             logging.info(
                 f'"{self.__original_video.name}": creating a new video with no music...'
@@ -62,7 +89,7 @@ class RemoveMusicFromVideo:
             print(
                 f'"{self.__original_video.name}": creating a new video with no music...'
             )
-            self.__create_video_without_music(music_remover.no_music_sound)
+            self.__create_video_without_music(no_music_audios)
             logging.info(
                 f'"{self.__original_video.name}": a new video with no music has been created'
             )
@@ -83,7 +110,7 @@ class RemoveMusicFromVideo:
         logging.info(f'"{self.__original_video.name}": Processing finished')
         print(f'"{self.__original_video.name}": Processing finished')
 
-    def __create_video_without_music(self, no_music_sound: Path) -> None:
+    def __create_video_without_music(self, no_music_paths: list[Path]) -> None:
         """
         replace the sound of the video with the no music version,
         and save the new video in the output folder
@@ -95,50 +122,15 @@ class RemoveMusicFromVideo:
 
         # create missing directories in the path if exists
         self.__no_music_video.parent.mkdir(parents=True, exist_ok=True)
-
-        # create video without music
-        create_no_music_video_command: list[str] = [
-            "ffmpeg",
-            "-y",
-            "-i",
-            self.__original_video.absolute(),
-            "-i",
-            no_music_sound.absolute(),
-            "-c:v",
-            "copy",
-            "-map",
-            "0:v:0",
-            "-map",
-            "1:a:0",
-            self.__no_music_video.absolute(),
-        ]
-        subprocess.run(create_no_music_video_command, encoding="utf-8", check=True)
+        self.__video_processor.replace_audio_streams(
+            audios=no_music_paths, output_directory=self.__no_music_video.parent
+        )
 
     def __cleanup_original_video(self) -> None:
         self.__original_video.unlink()
 
 
-extensions = (".mp4", ".mkv", ".webm")
-
-
-def is_supported_file(path: Path) -> bool:
-    return path.is_file() and path.suffix in extensions
-
-
-def is_directories_conflicting(first_path: Path, second_path: Path) -> bool:
-    return first_path.is_relative_to(second_path) or second_path.is_relative_to(
-        first_path
-    )
-
-
 # model
-
-
-def supported_file(value: Path) -> Path:
-    if value.is_file() and not is_supported_file(value):
-        raise ValueError("not a supported file type")
-
-    return value
 
 
 def path_exists(value: Path) -> Path:
@@ -148,25 +140,18 @@ def path_exists(value: Path) -> Path:
     return value
 
 
-def resolve_path(value: Path) -> Path:
-    """
-    resolve path instance
-
-    :raises FileNotFoundError if path does not exist
-    """
-    return value.resolve(True)
-
-
 class MusicRemoverData(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid", frozen=True)
 
     input_path: Annotated[
         Path,
         AfterValidator(path_exists),
-        AfterValidator(resolve_path),
+        AfterValidator(resolve_path_factory(strict=True)),
         AfterValidator(supported_file),
     ]
-    output_path: Annotated[DirectoryPath, AfterValidator(resolve_path)]
+    output_path: Annotated[
+        DirectoryPath, AfterValidator(resolve_path_factory(strict=True))
+    ]
 
     @model_validator(mode="after")
     def conflicting_directories(self) -> Self:
@@ -340,6 +325,20 @@ def health_check(debug: Annotated[bool, typer.Option("--debug")] = False) -> Non
         has_error = True
     else:
         print_info("ffmpeg installed")
+
+    # ffprobe
+    if debug:
+        print_debug('running command "ffprobe -version"')
+    if (
+        subprocess.run(
+            ["ffprobe", "-version"], encoding="utf-8", capture_output=capture_output
+        ).returncode
+        != 0
+    ):
+        print_error("ffprobe not installed", prefix=True)
+        has_error = True
+    else:
+        print_info("ffprobe installed")
 
     # demucs machine learning model
     if debug:

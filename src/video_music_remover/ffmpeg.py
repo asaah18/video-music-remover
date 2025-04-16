@@ -154,28 +154,26 @@ class VideoProcessor:
 
         options: list[str] = ["-y"]
 
-        # copy all streams except audio streams
-        codec: list[str] = [
-            "-c:v",
-            "copy",
-            "-c:s",
-            "copy",
-            "-c:d",
-            "copy",
-            "-c:t",
-            "copy",
-        ]
+        # copy all streams for mkv files, as it is compatible with the expected outputs of music remover models(mp3, wav and flac)
+        if self._video.suffix == ".mkv":
+            codec: list[str] = [
+                "-c",
+                "copy",
+            ]
+        else:
+            # copy all streams except audio streams
+            codec: list[str] = [
+                "-c:v",
+                "copy",
+                "-c:s",
+                "copy",
+                "-c:d",
+                "copy",
+                "-c:t",
+                "copy",
+            ]
 
         mapping: list[str] = ["-map", "0", "-map", "-0:a"]
-
-        # remove attachments(such as attached fonts) for mkv files as they cause error. to be resolved in the future
-        if self._video.suffix == ".mkv":
-            mapping.extend(
-                [
-                    "-map",
-                    "-0:t",
-                ]
-            )
 
         # add audio
         for index, _ in enumerate(audios):

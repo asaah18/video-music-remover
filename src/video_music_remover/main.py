@@ -41,7 +41,6 @@ class RemoveMusicFile:
             if base_directory
             else original_video.name
         )
-        self.__video_processor = VideoProcessor(original_video)
 
     @property
     def original_video(self) -> Path:
@@ -51,14 +50,12 @@ class RemoveMusicFile:
     def no_music_video(self) -> Path:
         return self.__no_music_video
 
-    @property
-    def video_processor(self) -> VideoProcessor:
-        return self.__video_processor
-
 
 def remove_music_from_video(
     file: RemoveMusicFile, music_remover_class: Type[MusicRemover]
 ) -> None:
+    video_processor = VideoProcessor(file.original_video)
+
     logging.info(f'Processing file "{file.original_video.name}"')
     print(f'Processing file "{file.original_video.name}"')
 
@@ -71,14 +68,14 @@ def remove_music_from_video(
         input_path.mkdir(parents=True, exist_ok=True)
         intermediate_path.mkdir(parents=True, exist_ok=True)
 
-        input_audios = file.video_processor.create_audio_streams(input_path)
+        input_audios = video_processor.create_audio_streams(input_path)
 
         no_music_audios: list[Path] = []
 
         for index, audio in enumerate(input_audios):
             music_remover = music_remover_class(audio, intermediate_path)
 
-            counter = f"{index + 1}/{len(file.video_processor.streams)}"
+            counter = f"{index + 1}/{len(video_processor.streams)}"
 
             logging.info(
                 f'"{file.original_video.name}": start separating vocal... {counter}'
@@ -104,7 +101,7 @@ def remove_music_from_video(
         print(f'"{file.original_video.name}": creating a new video with no music...')
 
         file.no_music_video.parent.mkdir(parents=True, exist_ok=True)
-        file.video_processor.replace_audio_streams(
+        video_processor.replace_audio_streams(
             audios=no_music_audios,
             output_directory=file.no_music_video.parent,
         )

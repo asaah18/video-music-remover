@@ -61,7 +61,6 @@ class RemoveMusicFromVideo:
         file: RemoveMusicFile,
         music_remover_class: Type[MusicRemover],
     ):
-        """:raise ValueError if base directory is not a relative path of original video or not an absolute path"""
         self.__original_video = file.original_video
         self.__no_music_video = file.no_music_video
         self.__video_processor = file.video_processor

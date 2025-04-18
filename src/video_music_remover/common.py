@@ -1,10 +1,12 @@
+import logging
+from itertools import chain
 from pathlib import Path
-from typing import Callable, Annotated
+from typing import Annotated, Callable
 
 from pydantic import (
+    AfterValidator,
     BaseModel,
     ConfigDict,
-    AfterValidator,
     DirectoryPath,
     model_validator,
 )
@@ -83,3 +85,18 @@ class MusicRemoverData(BaseModel):
                 "output path should not be a child or a parent or an exact of the input path"
             )
         return self
+
+    def get_video(self) -> Path | None:
+        """
+        get videos from input path
+
+        :returns None if no video is found or input is file. Else, return a video file from input path
+        """
+        logging.info(f'Looking for file to process in folder "{self.input_path}"...')
+        print(f'Looking for file to process in folder "{self.input_path}"...')
+
+        iterable = chain.from_iterable(
+            self.input_path.rglob(f"*{ext}") for ext in extensions
+        )
+
+        return next(iterable, None)

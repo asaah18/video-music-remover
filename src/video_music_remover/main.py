@@ -1,5 +1,4 @@
 import logging
-from itertools import chain
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Annotated, Optional, Type
@@ -8,7 +7,6 @@ from pydantic import AfterValidator, DirectoryPath, FilePath, validate_call
 
 from video_music_remover.common import (
     MusicRemoverData,
-    extensions,
     resolve_path_factory,
     supported_file,
 )
@@ -126,14 +124,6 @@ def remove_music_from_video(
     print(f'"{file.original_video.name}": Processing finished')
 
 
-def get_original_video(input_path: Path) -> Path | None:
-    logging.info(f'Looking for file to process in folder "{input_path.absolute()}"...')
-    print(f'Looking for file to process in folder "{input_path.absolute()}"...')
-    iterable = chain.from_iterable(input_path.rglob(f"*{ext}") for ext in extensions)
-
-    return next(iterable, None)
-
-
 def process_files(
     music_remover_data: MusicRemoverData, model: Type[MusicRemover]
 ) -> None:
@@ -141,7 +131,7 @@ def process_files(
         logging.info("Mass processing started")
         print("Mass processing started")
 
-        while original_video := get_original_video(music_remover_data.input_path):
+        while original_video := music_remover_data.get_video():
             remove_music_from_video(
                 file=RemoveMusicFile(
                     original_video=original_video,

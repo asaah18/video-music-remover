@@ -4,7 +4,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Annotated, Optional, Type
 
-from pydantic import AfterValidator, DirectoryPath, FilePath
+from pydantic import AfterValidator, DirectoryPath, FilePath, validate_call
 
 from video_music_remover.common import (
     MusicRemoverData,
@@ -17,6 +17,7 @@ from video_music_remover.music_remover_models import MusicRemover
 
 
 class RemoveMusicFile:
+    @validate_call
     def __init__(
         self,
         original_video: Annotated[

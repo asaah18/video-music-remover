@@ -6,10 +6,7 @@ from typing import Annotated, Optional
 import typer
 from rich import print as rich_print
 
-from video_music_remover.common import (
-    is_directories_conflicting,
-    supported_file,
-)
+from video_music_remover.common import is_directories_conflicting, supported_file
 from video_music_remover.main import MusicRemoverData, process_files
 from video_music_remover.music_remover_models import MusicRemoverModel
 
@@ -109,16 +106,21 @@ def remove_music(
     """
     remove music from a directory with videos or a single video
     """
-    logging.basicConfig(
-        filename=log,
-        encoding="utf-8",
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        level=logging.INFO,
-    )
+    logger = None
+
+    if log:
+        logger = logging.getLogger("music_remover")
+        logger.setLevel(logging.INFO)
+        file_handler = logging.FileHandler(filename=log, encoding="utf-8")
+        file_handler.setFormatter(
+            logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
+        )
+        logger.addHandler(file_handler)
 
     process_files(
         MusicRemoverData(input_path=input_path, output_path=output_path),
         model=model.related_class,
+        logger=logger,
     )
 
 

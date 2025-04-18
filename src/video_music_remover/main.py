@@ -1,12 +1,24 @@
 import logging
+from itertools import chain
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Annotated, Optional, Type
 
-from pydantic import AfterValidator, DirectoryPath, FilePath, validate_call
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    DirectoryPath,
+    FilePath,
+    model_validator,
+    validate_call,
+)
+from typing_extensions import Self
 
 from video_music_remover.common import (
-    MusicRemoverData,
+    extensions,
+    is_directories_conflicting,
+    path_exists,
     resolve_path_factory,
     supported_file,
 )
@@ -122,6 +134,40 @@ def remove_music_from_video(
 
     logging.info(f'"{file.original_video.name}": Processing finished')
     print(f'"{file.original_video.name}": Processing finished')
+
+
+class MusicRemoverData(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid", frozen=True)
+
+    input_path: Annotated[
+        Path,
+        AfterValidator(path_exists),
+        AfterValidator(resolve_path_factory(strict=True)),
+        AfterValidator(supported_file),
+    ]
+    output_path: Annotated[
+        DirectoryPath, AfterValidator(resolve_path_factory(strict=True))
+    ]
+
+    @model_validator(mode="after")
+    def __conflicting_directories(self) -> Self:
+        if is_directories_conflicting(self.input_path, self.output_path):
+            raise ValueError(
+                "output path should not be a child or a parent or an exact of the input path"
+            )
+        return self
+
+    def get_video(self) -> Path | None:
+        """
+        get videos from input path
+
+        :returns None if no video is found or input is file. Else, return a video file from input path
+        """
+        iterable = chain.from_iterable(
+            self.input_path.rglob(f"*{ext}") for ext in extensions
+        )
+
+        return next(iterable, None)
 
 
 def process_files(

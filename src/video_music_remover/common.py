@@ -1,4 +1,3 @@
-import logging
 from itertools import chain
 from pathlib import Path
 from typing import Annotated, Callable
@@ -92,9 +91,6 @@ class MusicRemoverData(BaseModel):
 
         :returns None if no video is found or input is file. Else, return a video file from input path
         """
-        logging.info(f'Looking for file to process in folder "{self.input_path}"...')
-        print(f'Looking for file to process in folder "{self.input_path}"...')
-
         iterable = chain.from_iterable(
             self.input_path.rglob(f"*{ext}") for ext in extensions
         )

@@ -127,11 +127,27 @@ def remove_music_from_video(
 def process_files(
     music_remover_data: MusicRemoverData, model: Type[MusicRemover]
 ) -> None:
+    def get_video() -> Path | None:
+        logging.info(
+            f'Looking for file to process in folder "{music_remover_data.input_path}"...'
+        )
+        print(
+            f'Looking for file to process in folder "{music_remover_data.input_path}"...'
+        )
+
+        video = music_remover_data.get_video()
+
+        if video is None:
+            logging.info("There's no file to process")
+            print("There's no file to process")
+
+        return video
+
     if music_remover_data.input_path.is_dir():
         logging.info("Mass processing started")
         print("Mass processing started")
 
-        while original_video := music_remover_data.get_video():
+        while original_video := get_video():
             remove_music_from_video(
                 file=RemoveMusicFile(
                     original_video=original_video,
@@ -140,9 +156,6 @@ def process_files(
                 ),
                 music_remover_class=model,
             )
-        else:
-            logging.info("There's no file to process")
-            print("There's no file to process")
 
         logging.info("Mass processing finished")
         print("Mass processing finished")

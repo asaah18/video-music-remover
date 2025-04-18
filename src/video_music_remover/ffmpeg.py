@@ -1,20 +1,20 @@
 import subprocess
 from pathlib import Path
-from typing import Optional, Literal, List, Annotated
+from typing import Annotated, List, Literal, Optional
 
 from pydantic import (
+    AfterValidator,
     BaseModel,
     ConfigDict,
-    validate_call,
-    FilePath,
-    AfterValidator,
     DirectoryPath,
+    FilePath,
+    validate_call,
 )
 
 from video_music_remover.common import (
-    supported_file,
     resolve_path_factory,
     resolve_paths_factory,
+    supported_file,
 )
 
 
@@ -156,10 +156,7 @@ class VideoProcessor:
 
         # copy all streams for mkv files, as it is compatible with the expected outputs of music remover models(mp3, wav and flac)
         if self._video.suffix == ".mkv":
-            codec: list[str] = [
-                "-c",
-                "copy",
-            ]
+            codec: list[str] = ["-c", "copy"]
         else:
             # copy all streams except audio streams
             codec: list[str] = [

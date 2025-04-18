@@ -36,12 +36,10 @@ class RemoveMusicFile:
             AfterValidator(resolve_path_factory(strict=True)),
         ],
         output_directory: Annotated[
-            DirectoryPath,
-            AfterValidator(resolve_path_factory(strict=True)),
+            DirectoryPath, AfterValidator(resolve_path_factory(strict=True))
         ],
         base_directory: Annotated[
-            Optional[DirectoryPath],
-            AfterValidator(resolve_path_factory(strict=True)),
+            Optional[DirectoryPath], AfterValidator(resolve_path_factory(strict=True))
         ] = None,
     ):
         """:raise ValueError if base directory is not a relative path of original video or not an absolute path"""
@@ -112,8 +110,7 @@ def remove_music_from_video(
 
         file.no_music_video.parent.mkdir(parents=True, exist_ok=True)
         video_processor.replace_audio_streams(
-            audios=no_music_audios,
-            output_directory=file.no_music_video.parent,
+            audios=no_music_audios, output_directory=file.no_music_video.parent
         )
 
         logging.info(
@@ -206,10 +203,7 @@ def process_files(
         print("Mass processing started")
 
         while original_video := get_video():
-            remove_music_from_video(
-                file=original_video,
-                music_remover_class=model,
-            )
+            remove_music_from_video(file=original_video, music_remover_class=model)
 
         logging.info("Mass processing finished")
         print("Mass processing finished")

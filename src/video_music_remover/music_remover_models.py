@@ -4,12 +4,14 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional, Type
 
-from pydantic import validate_call, FilePath, DirectoryPath
+from pydantic import DirectoryPath, FilePath, validate_call
 
 
 class MusicRemover(ABC):
     @validate_call
-    def __init__(self, original_video: FilePath, output_directory: Optional[DirectoryPath] = None):
+    def __init__(
+        self, original_video: FilePath, output_directory: Optional[DirectoryPath] = None
+    ):
         self._original_video: Path = original_video
         self._output_directory: Path = (
             output_directory

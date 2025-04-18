@@ -56,19 +56,12 @@ class RemoveMusicFile:
 
 
 class RemoveMusicFromVideo:
-    def __init__(
-        self,
-        file: RemoveMusicFile,
-        music_remover_class: Type[MusicRemover],
-    ):
-        self.__original_video = file.original_video
-        self.__no_music_video = file.no_music_video
-        self.__video_processor = file.video_processor
-        self.__music_remover_class = music_remover_class
+    def __init__(self, file: RemoveMusicFile):
+        self.__file = file
 
-    def process(self) -> None:
-        logging.info(f'Processing file "{self.__original_video.name}"')
-        print(f'Processing file "{self.__original_video.name}"')
+    def process(self, music_remover_class: Type[MusicRemover]) -> None:
+        logging.info(f'Processing file "{self.__file.original_video.name}"')
+        print(f'Processing file "{self.__file.original_video.name}"')
 
         # TemporaryDirectory is cleaned up automatically
         with TemporaryDirectory(prefix="music-remover-") as temporary_directory:
@@ -79,56 +72,58 @@ class RemoveMusicFromVideo:
             input_path.mkdir(parents=True, exist_ok=True)
             intermediate_path.mkdir(parents=True, exist_ok=True)
 
-            input_audios = self.__video_processor.create_audio_streams(input_path)
+            input_audios = self.__file.video_processor.create_audio_streams(input_path)
 
             no_music_audios: list[Path] = []
 
             for index, audio in enumerate(input_audios):
-                music_remover = self.__music_remover_class(audio, intermediate_path)
+                music_remover = music_remover_class(audio, intermediate_path)
 
-                counter = f"{index + 1}/{len(self.__video_processor.streams)}"
+                counter = f"{index + 1}/{len(self.__file.video_processor.streams)}"
 
                 logging.info(
-                    f'"{self.__original_video.name}": start separating vocal... {counter}'
+                    f'"{self.__file.original_video.name}": start separating vocal... {counter}'
                 )
                 print(
-                    f'"{self.__original_video.name}": start separating vocal... {counter}'
+                    f'"{self.__file.original_video.name}": start separating vocal... {counter}'
                 )
                 music_remover.remove_music()
                 logging.info(
-                    f'"{self.__original_video.name}": vocal seperated successfully {counter}'
+                    f'"{self.__file.original_video.name}": vocal seperated successfully {counter}'
                 )
                 print(
-                    f'"{self.__original_video.name}": vocal seperated successfully {counter}'
+                    f'"{self.__file.original_video.name}": vocal seperated successfully {counter}'
                 )
                 no_music_audios.append(music_remover.no_music_sound)
 
             logging.info(
-                f'"{self.__original_video.name}": creating a new video with no music...'
+                f'"{self.__file.original_video.name}": creating a new video with no music...'
             )
             print(
-                f'"{self.__original_video.name}": creating a new video with no music...'
+                f'"{self.__file.original_video.name}": creating a new video with no music...'
             )
             self.__create_video_without_music(no_music_audios)
             logging.info(
-                f'"{self.__original_video.name}": a new video with no music has been created'
+                f'"{self.__file.original_video.name}": a new video with no music has been created'
             )
             print(
-                f'"{self.__original_video.name}": a new video with no music has been created'
+                f'"{self.__file.original_video.name}": a new video with no music has been created'
             )
 
-            logging.info(f'"{self.__original_video.name}": deleting original video...')
-            print(f'"{self.__original_video.name}": deleting original video...')
+            logging.info(
+                f'"{self.__file.original_video.name}": deleting original video...'
+            )
+            print(f'"{self.__file.original_video.name}": deleting original video...')
             self.__cleanup_original_video()
             logging.info(
-                f'"{self.__original_video.name}": original video deleted successfully'
+                f'"{self.__file.original_video.name}": original video deleted successfully'
             )
             print(
-                f'"{self.__original_video.name}": original video deleted successfully'
+                f'"{self.__file.original_video.name}": original video deleted successfully'
             )
 
-        logging.info(f'"{self.__original_video.name}": Processing finished')
-        print(f'"{self.__original_video.name}": Processing finished')
+        logging.info(f'"{self.__file.original_video.name}": Processing finished')
+        print(f'"{self.__file.original_video.name}": Processing finished')
 
     def __create_video_without_music(self, no_music_paths: list[Path]) -> None:
         """
@@ -141,13 +136,13 @@ class RemoveMusicFromVideo:
         # assuming that original video is deleted by cleanup process when a video without music is created successfully
 
         # create missing directories in the path if exists
-        self.__no_music_video.parent.mkdir(parents=True, exist_ok=True)
-        self.__video_processor.replace_audio_streams(
-            audios=no_music_paths, output_directory=self.__no_music_video.parent
+        self.__file.no_music_video.parent.mkdir(parents=True, exist_ok=True)
+        self.__file.video_processor.replace_audio_streams(
+            audios=no_music_paths, output_directory=self.__file.no_music_video.parent
         )
 
     def __cleanup_original_video(self) -> None:
-        self.__original_video.unlink()
+        self.__file.original_video.unlink()
 
 
 def get_original_video(input_path: Path) -> Path | None:
@@ -172,8 +167,7 @@ def process_files(
                     output_directory=music_remover_data.output_path,
                     base_directory=music_remover_data.input_path,
                 ),
-                music_remover_class=model,
-            ).process()
+            ).process(music_remover_class=model)
         else:
             logging.info("There's no file to process")
             print("There's no file to process")
@@ -187,5 +181,4 @@ def process_files(
                 original_video=music_remover_data.input_path,
                 output_directory=music_remover_data.output_path,
             ),
-            music_remover_class=model,
-        ).process()
+        ).process(music_remover_class=model)

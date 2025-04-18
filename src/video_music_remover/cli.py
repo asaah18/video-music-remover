@@ -1,17 +1,16 @@
 import logging
 import subprocess
 from pathlib import Path
-from typing import Optional, Annotated
+from typing import Annotated, Optional
 
 import typer
 from rich import print as rich_print
 
 from video_music_remover.common import (
-    supported_file,
     is_directories_conflicting,
-    MusicRemoverData,
+    supported_file,
 )
-from video_music_remover.main import process_files
+from video_music_remover.main import MusicRemoverData, process_files
 from video_music_remover.music_remover_models import MusicRemoverModel
 
 app = typer.Typer()

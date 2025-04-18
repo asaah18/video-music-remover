@@ -1,14 +1,5 @@
 from pathlib import Path
-from typing import Callable, Annotated
-
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    AfterValidator,
-    DirectoryPath,
-    model_validator,
-)
-from typing_extensions import Self
+from typing import Callable
 
 extensions = (".mp4", ".mkv", ".webm")
 
@@ -61,25 +52,3 @@ def path_exists(value: Path) -> Path:
         raise ValueError(f"{value} is not an existing path")
 
     return value
-
-
-class MusicRemoverData(BaseModel):
-    model_config = ConfigDict(strict=True, extra="forbid", frozen=True)
-
-    input_path: Annotated[
-        Path,
-        AfterValidator(path_exists),
-        AfterValidator(resolve_path_factory(strict=True)),
-        AfterValidator(supported_file),
-    ]
-    output_path: Annotated[
-        DirectoryPath, AfterValidator(resolve_path_factory(strict=True))
-    ]
-
-    @model_validator(mode="after")
-    def conflicting_directories(self) -> Self:
-        if is_directories_conflicting(self.input_path, self.output_path):
-            raise ValueError(
-                "output path should not be a child or a parent or an exact of the input path"
-            )
-        return self

@@ -2,33 +2,70 @@ import logging
 from itertools import chain
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Optional, Type
+from typing import Annotated, Optional, Type
+
+from pydantic import AfterValidator, DirectoryPath, FilePath
 
 from video_music_remover.common import (
-    extensions,
     MusicRemoverData,
+    extensions,
+    resolve_path_factory,
+    supported_file,
 )
 from video_music_remover.ffmpeg import VideoProcessor
 from video_music_remover.music_remover_models import MusicRemover
 
 
-class RemoveMusicFromVideo:
+class RemoveMusicFile:
     def __init__(
         self,
-        original_video: Path,
-        music_remover_class: Type[MusicRemover],
-        output_directory: Path,
-        base_directory: Optional[Path] = None,
+        original_video: Annotated[
+            FilePath,
+            AfterValidator(supported_file),
+            AfterValidator(resolve_path_factory(strict=True)),
+        ],
+        output_directory: Annotated[
+            DirectoryPath,
+            AfterValidator(resolve_path_factory(strict=True)),
+        ],
+        base_directory: Annotated[
+            Optional[DirectoryPath],
+            AfterValidator(resolve_path_factory(strict=True)),
+        ] = None,
     ):
         """:raise ValueError if base directory is not a relative path of original video or not an absolute path"""
         self.__original_video = original_video
-        self.__music_remover_class = music_remover_class
-        self.__no_music_video = output_directory / (
+        self.__no_music_video = output_directory.joinpath(
             original_video.relative_to(base_directory)
             if base_directory
             else original_video.name
         )
         self.__video_processor = VideoProcessor(original_video)
+
+    @property
+    def original_video(self) -> Path:
+        return self.__original_video
+
+    @property
+    def no_music_video(self) -> Path:
+        return self.__no_music_video
+
+    @property
+    def video_processor(self) -> VideoProcessor:
+        return self.__video_processor
+
+
+class RemoveMusicFromVideo:
+    def __init__(
+        self,
+        file: RemoveMusicFile,
+        music_remover_class: Type[MusicRemover],
+    ):
+        """:raise ValueError if base directory is not a relative path of original video or not an absolute path"""
+        self.__original_video = file.original_video
+        self.__no_music_video = file.no_music_video
+        self.__video_processor = file.video_processor
+        self.__music_remover_class = music_remover_class
 
     def process(self) -> None:
         logging.info(f'Processing file "{self.__original_video.name}"')
@@ -131,10 +168,12 @@ def process_files(
 
         while original_video := get_original_video(music_remover_data.input_path):
             RemoveMusicFromVideo(
-                original_video=original_video.resolve(),
+                file=RemoveMusicFile(
+                    original_video=original_video,
+                    output_directory=music_remover_data.output_path,
+                    base_directory=music_remover_data.input_path,
+                ),
                 music_remover_class=model,
-                output_directory=music_remover_data.output_path,
-                base_directory=music_remover_data.input_path,
             ).process()
         else:
             logging.info("There's no file to process")
@@ -145,7 +184,9 @@ def process_files(
     else:
         # input is an existing file
         RemoveMusicFromVideo(
-            original_video=music_remover_data.input_path,
+            file=RemoveMusicFile(
+                original_video=music_remover_data.input_path,
+                output_directory=music_remover_data.output_path,
+            ),
             music_remover_class=model,
-            output_directory=music_remover_data.output_path,
         ).process()

@@ -77,7 +77,7 @@ class MusicRemoverData(BaseModel):
     ]
 
     @model_validator(mode="after")
-    def conflicting_directories(self) -> Self:
+    def __conflicting_directories(self) -> Self:
         if is_directories_conflicting(self.input_path, self.output_path):
             raise ValueError(
                 "output path should not be a child or a parent or an exact of the input path"

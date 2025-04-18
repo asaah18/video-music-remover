@@ -157,7 +157,7 @@ class MusicRemoverData(BaseModel):
             )
         return self
 
-    def get_video(self) -> Path | None:
+    def get_video(self) -> RemoveMusicFile | None:
         """
         get videos from input path
 
@@ -167,13 +167,25 @@ class MusicRemoverData(BaseModel):
             self.input_path.rglob(f"*{ext}") for ext in extensions
         )
 
-        return next(iterable, None)
+        video = next(iterable, None)
+
+        remove_music_file = (
+            RemoveMusicFile(
+                original_video=video,
+                output_directory=self.output_path,
+                base_directory=self.input_path,
+            )
+            if video
+            else None
+        )
+
+        return remove_music_file
 
 
 def process_files(
     music_remover_data: MusicRemoverData, model: Type[MusicRemover]
 ) -> None:
-    def get_video() -> Path | None:
+    def get_video() -> RemoveMusicFile | None:
         logging.info(
             f'Looking for file to process in folder "{music_remover_data.input_path}"...'
         )
@@ -195,11 +207,7 @@ def process_files(
 
         while original_video := get_video():
             remove_music_from_video(
-                file=RemoveMusicFile(
-                    original_video=original_video,
-                    output_directory=music_remover_data.output_path,
-                    base_directory=music_remover_data.input_path,
-                ),
+                file=original_video,
                 music_remover_class=model,
             )
 

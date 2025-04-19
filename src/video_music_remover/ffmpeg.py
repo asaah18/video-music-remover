@@ -144,6 +144,9 @@ class VideoProcessor:
                 "number of new audio files should not exceed the number of audio streams of the video"
             )
 
+        temporary_output_file = output_directory.joinpath(
+            f".music_remover_output{self._video.suffix}"
+        )
         output_file = output_directory.joinpath(self._video.name)
 
         # create video without music
@@ -197,9 +200,11 @@ class VideoProcessor:
             *codec,
             *mapping,
             *metadata,
-            output_file,
+            temporary_output_file,
         ]
 
         subprocess.run(
             command, encoding="utf-8", capture_output=True, text=True, check=True
         )
+
+        temporary_output_file.replace(output_file)

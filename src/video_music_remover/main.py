@@ -1,6 +1,7 @@
 from itertools import chain
 from logging import Logger
 from pathlib import Path
+from subprocess import CalledProcessError
 from tempfile import TemporaryDirectory
 from typing import Annotated, Optional, Type
 
@@ -69,9 +70,8 @@ def remove_music_from_video(
     music_remover_class: Type[MusicRemover],
     event_dispatcher: MusicRemoveEventDispatcher,
 ) -> None:
-    video_processor = VideoProcessor(file.original_video)
-
     event_dispatcher.video_processing_started(original_video=file.original_video)
+    video_processor = VideoProcessor(file.original_video)
 
     # TemporaryDirectory is cleaned up automatically
     with TemporaryDirectory(prefix="music-remover-") as temporary_directory:
@@ -155,27 +155,35 @@ class MusicRemoverData(BaseModel):
             )
         return self
 
-    def get_video(self) -> RemoveMusicFile | None:
+    def get_video(
+        self, excluded_files: Optional[list[Path]] = None
+    ) -> RemoveMusicFile | None:
         """
         get videos from input path
 
         :returns None if no video is found or input is file. Else, return a video file from input path
         """
+        excluded_files = excluded_files if excluded_files else []
+
         iterable = chain.from_iterable(
             self.input_path.rglob(f"*{ext}") for ext in extensions
         )
 
-        video = next(iterable, None)
+        remove_music_file = None
 
-        remove_music_file = (
-            RemoveMusicFile(
+        while remove_music_file is None:
+            video = next(iterable, None)
+            if video is None:
+                break
+
+            if video in excluded_files:
+                continue
+
+            remove_music_file = RemoveMusicFile(
                 original_video=video,
                 output_directory=self.output_path,
                 base_directory=self.input_path,
             )
-            if video
-            else None
-        )
 
         return remove_music_file
 
@@ -185,6 +193,8 @@ def process_files(
     model: Type[MusicRemover],
     logger: Optional[Logger] = None,
 ) -> None:
+    excluded_files: list[Path] = []
+
     def get_video() -> RemoveMusicFile | None:
         if logger:
             logger.info(
@@ -194,7 +204,7 @@ def process_files(
             f'Looking for file to process in folder "{music_remover_data.input_path}"...'
         )
 
-        video = music_remover_data.get_video()
+        video = music_remover_data.get_video(excluded_files=excluded_files)
 
         if video is None:
             if logger:
@@ -214,11 +224,18 @@ def process_files(
         print("Mass processing started")
 
         while original_video := get_video():
-            remove_music_from_video(
-                file=original_video,
-                music_remover_class=model,
-                event_dispatcher=event_dispatcher,
-            )
+            try:
+                remove_music_from_video(
+                    file=original_video,
+                    music_remover_class=model,
+                    event_dispatcher=event_dispatcher,
+                )
+            except CalledProcessError as e:
+                excluded_files.append(original_video.original_video)
+                message = f"a cli error occurred while processing file {original_video.original_video}, skipping the file. error: {e}"
+                print(message)
+                if logger:
+                    logger.error(message)
 
         if logger:
             logger.info("Mass processing finished")

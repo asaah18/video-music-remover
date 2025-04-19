@@ -31,14 +31,6 @@ class MusicRemoverObserver(ABC):
         pass
 
     @abstractmethod
-    def cleanup_original_video_started(self, original_video: Path) -> None:
-        pass
-
-    @abstractmethod
-    def cleanup_original_video_finished(self, original_video: Path) -> None:
-        pass
-
-    @abstractmethod
     def video_processing_finished(self, original_video: Path, new_video: Path) -> None:
         pass
 
@@ -84,14 +76,6 @@ class MusicRemoveEventDispatcher:
                 original_video=original_video, new_video=new_video
             )
 
-    def cleanup_original_video_started(self, original_video: Path) -> None:
-        for observer in self.__observers:
-            observer.cleanup_original_video_started(original_video=original_video)
-
-    def cleanup_original_video_finished(self, original_video: Path) -> None:
-        for observer in self.__observers:
-            observer.cleanup_original_video_finished(original_video=original_video)
-
     def video_processing_finished(self, original_video: Path, new_video: Path) -> None:
         for observer in self.__observers:
             observer.video_processing_finished(
@@ -133,14 +117,6 @@ class LogObserver(MusicRemoverObserver):
             f'"{original_video.name}": a new video with no music has been created'
         )
 
-    def cleanup_original_video_started(self, original_video: Path) -> None:
-        self.logger.info(f'"{original_video.name}": deleting original video...')
-
-    def cleanup_original_video_finished(self, original_video: Path) -> None:
-        self.logger.info(
-            f'"{original_video.name}": original video deleted successfully'
-        )
-
     def video_processing_finished(self, original_video: Path, new_video: Path) -> None:
         self.logger.info(f'"{original_video.name}": Processing finished')
 
@@ -168,12 +144,6 @@ class PrintObserver(MusicRemoverObserver):
         self, original_video: Path, new_video: Path
     ) -> None:
         print(f'"{original_video.name}": a new video with no music has been created')
-
-    def cleanup_original_video_started(self, original_video: Path) -> None:
-        print(f'"{original_video.name}": deleting original video...')
-
-    def cleanup_original_video_finished(self, original_video: Path) -> None:
-        print(f'"{original_video.name}": original video deleted successfully')
 
     def video_processing_finished(self, original_video: Path, new_video: Path) -> None:
         print(f'"{original_video.name}": Processing finished')

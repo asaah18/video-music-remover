@@ -105,10 +105,6 @@ def remove_music_from_video(
             no_music_audios.append(music_remover.no_music_sound)
 
         # create new video without music
-        #   there's no check for the existence of new video with no music because it should be overwritten even if it exists
-        #   to ensure that no incomplete video is being created if the process failed in the middle of the process
-        #   assuming that original video is deleted by cleanup process when a video without music is created successfully
-
         event_dispatcher.creating_new_video_started(
             original_video=file.original_video, new_video=file.no_music_video
         )
@@ -118,15 +114,6 @@ def remove_music_from_video(
         )
         event_dispatcher.creating_new_video_finished(
             original_video=file.original_video, new_video=file.no_music_video
-        )
-
-        # cleanup original video
-        event_dispatcher.cleanup_original_video_started(
-            original_video=file.original_video
-        )
-        file.original_video.unlink()
-        event_dispatcher.cleanup_original_video_finished(
-            original_video=file.original_video
         )
 
     event_dispatcher.video_processing_finished(
@@ -184,6 +171,9 @@ class MusicRemoverData(BaseModel):
                 output_directory=self.output_path,
                 base_directory=self.input_path,
             )
+            if remove_music_file.no_music_video.exists():
+                remove_music_file = None
+                continue
 
         return remove_music_file
 

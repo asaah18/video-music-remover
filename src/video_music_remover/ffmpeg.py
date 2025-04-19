@@ -201,9 +201,5 @@ class VideoProcessor:
         ]
 
         subprocess.run(
-            command,
-            encoding="utf-8",
-            capture_output=True,
-            text=True,
-            check=True,
+            command, encoding="utf-8", capture_output=True, text=True, check=True
         )

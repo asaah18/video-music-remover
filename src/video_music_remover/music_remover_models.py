@@ -55,8 +55,8 @@ class DemucsMusicRemover(MusicRemover, ABC):
         return Path("separated")
 
     def _get_no_music_audio_path(self, video_path: Path) -> Path:
-        return (
-            self._output_directory / f"{self._get_model()}/{video_path.stem}/vocals.mp3"
+        return self._output_directory.joinpath(
+            f"{self._get_model()}/{video_path.stem}/vocals.mp3"
         )
 
     def remove_music(self) -> None:
@@ -68,9 +68,7 @@ class DemucsMusicRemover(MusicRemover, ABC):
             "-o",
             self._output_directory.absolute(),
         ]
-        remove_music_command: list[str] = (
-            ["demucs"] + options + [self._original_video.absolute()]
-        )
+        remove_music_command: list[str] = ["demucs", *options, self._original_video]
 
         subprocess.run(remove_music_command, encoding="utf-8", check=True)
         # raise exception if vocal sound is not created

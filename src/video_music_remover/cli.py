@@ -1,3 +1,4 @@
+import importlib.metadata
 import logging
 import subprocess
 from pathlib import Path
@@ -175,6 +176,11 @@ def health_check(debug: Annotated[bool, typer.Option("--debug")] = False) -> Non
         exit(1)
     else:
         print_success("Everything is ok")
+
+
+@app.command()
+def version() -> None:
+    print(importlib.metadata.version("video-music-remover"))
 
 
 if __name__ == "__main__":

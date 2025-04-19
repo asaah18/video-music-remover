@@ -13,8 +13,5 @@ learning model
 
 1. run the Python module `main.py` using the command `uv run video-music-remover` and pass the input file/folder and
    output folder.
-
-- note: the videos without music will be saved to the passed output folder and the original file will be **deleted**.
--
-- note: currently, attachments of "mkv" files are not retained because including them cause an error in output video
-  generation.
+2. the program will process each supported file(mp4, mkv, webm) and produce a video without music in the corresponding
+   output directory.

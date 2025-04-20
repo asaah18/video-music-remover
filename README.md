@@ -1,17 +1,27 @@
 # video-music-remover
 
-a Python script to remove music from mp4 and mkv video files using [demux](https://github.com/facebookresearch/demucs)
-machine
-learning model
+a Python script to remove music from mp4 and mkv video files using [demucs](https://github.com/adefossez/demucs)
+machine learning model.
+
+The supported machine learning models are:
+
+- demucs/htdemucs
+- demucs/mdx_extra_q
 
 ## setup
 
-- install [ffmpeg](https://ffmpeg.org) in your device
-- install dependencies using [UV](https://docs.astral.sh/uv/)
+### requirements
+
+- install [ffmpeg](https://ffmpeg.org)
+
+### package manager
+
+this project is using [UV](https://docs.astral.sh/uv/) package manager
 
 ## usage
 
-1. run the Python module `main.py` using the command `uv run video-music-remover` and pass the input file/folder and
-   output folder.
-2. the program will process each supported file(mp4, mkv, webm) and produce a video without music in the corresponding
-   output directory.
+Run the command "video-music-remover" followed by input file/folder and output folder. There are other options in the
+command for choosing the AI model to use for separating audio steams and other options.
+
+The program will process each supported file(mp4, mkv, webm) from input and produce a video without music in the
+corresponding output folder.

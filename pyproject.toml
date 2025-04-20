@@ -11,6 +11,24 @@ dependencies = [
     "typer>=0.15.1",
 ]
 authors = [{ name = "ash", email = "asaah18@gmail.com" }]
+license = "MIT"
+license-files = ['LICENSE']
+keywords = ['music remover', 'video music remover', 'no music', 'remove music from video']
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: End Users/Desktop',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
+    'Programming Language :: Python :: 3.14',
+    'Operating System :: OS Independent'
+]
+
+[project.urls]
+Homepage = "https://github.com/asaah18/video-music-remover"
+Repository = "https://github.com/asaah18/video-music-remover.git"
+Issues = "https://github.com/asaah18/video-music-remover/issues"
 
 [project.scripts]
 video-music-remover = "video_music_remover:cli"

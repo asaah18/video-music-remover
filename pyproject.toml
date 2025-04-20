@@ -1,6 +1,6 @@
 [project]
 name = "video-music-remover"
-version = "0.5.0"
+version = "0.5.1"
 description = "a cli tool to remove music from videos"
 readme = "README.md"
 requires-python = ">=3.10"

@@ -20,5 +20,5 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: check format
-        run: ruff check
+        run: uvx ruff check
 

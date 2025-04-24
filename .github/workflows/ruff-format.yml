@@ -1,0 +1,24 @@
+# This workflow will check formating using ruff
+
+name: ruff format check
+
+on:
+  pull_request:
+    types: [ 'synchronize' ]
+
+permissions:
+  contents: read
+
+jobs:
+  format-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: check format
+        run: uvx ruff check
+

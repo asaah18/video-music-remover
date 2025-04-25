@@ -6,6 +6,8 @@ from typing import Optional, Type
 
 from pydantic import DirectoryPath, FilePath, validate_call
 
+from video_music_remover.orms import DemucsBuilder, DemucsModels
+
 
 class MusicRemover(ABC):
     @validate_call
@@ -45,14 +47,14 @@ class MusicRemover(ABC):
 
 class DemucsMusicRemover(MusicRemover, ABC):
     @abstractmethod
-    def _get_model(self) -> str:
+    def _get_model(self) -> DemucsModels:
         """
         the models to choose from are: htdemucs, mdx_extra_q
         """
         pass
 
     def _get_default_output_directory(self) -> Path:
-        return Path("separated")
+        return Path("separated").resolve()
 
     def _get_no_music_audio_path(self, video_path: Path) -> Path:
         return self._output_directory.joinpath(
@@ -60,15 +62,13 @@ class DemucsMusicRemover(MusicRemover, ABC):
         )
 
     def remove_music(self) -> None:
-        options: list[str] = [
-            "--mp3",
-            "--two-stems=vocals",
-            "-n",
-            self._get_model(),
-            "-o",
-            self._output_directory.absolute(),
-        ]
-        remove_music_command: list[str] = ["demucs", *options, self._original_video]
+        demucs_builder = DemucsBuilder(self._original_video)
+        demucs_builder.save_as("mp3")
+        demucs_builder.two_stems("vocals")
+        demucs_builder.model(self._get_model())
+        demucs_builder.output_directory(self._output_directory)
+
+        remove_music_command: list[str] = demucs_builder.command
 
         subprocess.run(remove_music_command, encoding="utf-8", check=True)
         # raise exception if vocal sound is not created
@@ -83,7 +83,7 @@ class HTDemucsMusicRemover(DemucsMusicRemover):
     In some cases, this model can actually perform worse than previous models
     """
 
-    def _get_model(self) -> str:
+    def _get_model(self) -> DemucsModels:
         return "htdemucs"
 
 
@@ -92,7 +92,7 @@ class MDXDemucsMusicRemover(DemucsMusicRemover):
     the previous Demucs model
     """
 
-    def _get_model(self) -> str:
+    def _get_model(self) -> DemucsModels:
         return "mdx_extra_q"
 
 

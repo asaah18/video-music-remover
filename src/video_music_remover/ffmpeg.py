@@ -16,6 +16,7 @@ from video_music_remover.common import (
     resolve_paths_factory,
     supported_file,
 )
+from video_music_remover.orms import FfmpegBuilder, FfprobeBuilder
 
 
 class AudioStreamTag(BaseModel):
@@ -62,22 +63,15 @@ class VideoProcessor:
         """
         :raises subprocess.CalledProcessError: if probe command fails
         """
+        ffprobe_builder = FfprobeBuilder()
+        ffprobe_builder.log_level("quiet")
+        ffprobe_builder.select_stream("a")
+        ffprobe_builder.show_streams()
+        ffprobe_builder.print_format("json")
+        ffprobe_builder.input(self._video)
+
         completed_process = subprocess.run(
-            [
-                "ffprobe",
-                "-v",
-                "quiet",
-                "-select_streams",
-                "a",
-                "-show_streams",
-                "-print_format",
-                "json",
-                "-i",
-                self._video,
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
+            ffprobe_builder.command, capture_output=True, text=True, check=True
         )
         return MediaMetadata.model_validate_json(completed_process.stdout)
 
@@ -102,18 +96,16 @@ class VideoProcessor:
         for index, stream in enumerate(self.streams):
             file: Path = directory.joinpath(f"input_{index}{self._video.suffix}")
 
-            command = [
-                "ffmpeg",
-                "-i",
-                self._video,
-                "-map",
-                f"0:a:{index}",
-                "-c",
-                "copy",
-                "-y",  # replace file if already exists
-                file,
-            ]
-            subprocess.run(command, capture_output=True, text=True, check=True)
+            builder = FfmpegBuilder()
+            builder.input(self._video)
+            builder.stream_index_map(
+                negative_mapping=False, input_index=0, stream="a", stream_index=index
+            )
+            builder.codec(codec="copy")
+            builder.replace_if_exists()
+            builder.output(file)
+
+            subprocess.run(builder.command, capture_output=True, text=True, check=True)
             files.append(file)
 
         return files
@@ -150,61 +142,57 @@ class VideoProcessor:
         output_file = output_directory.joinpath(self._video.name)
 
         # create video without music
-        input_params: list[str] = ["-i", self._video]
+        builder = FfmpegBuilder()
+
+        builder.input(self._video)
 
         for audio in audios:
-            input_params.extend(["-i", audio])
+            builder.input(audio)
 
-        options: list[str] = ["-y"]
+        builder.replace_if_exists()
 
         # copy all streams for mkv files, as it is compatible with the expected outputs of music remover models(mp3, wav and flac)
         if self._video.suffix == ".mkv":
-            codec: list[str] = ["-c", "copy"]
+            builder.codec(codec="copy")
         else:
             # copy all streams except audio streams
-            codec: list[str] = [
-                "-c:v",
-                "copy",
-                "-c:s",
-                "copy",
-                "-c:d",
-                "copy",
-                "-c:t",
-                "copy",
-            ]
+            builder.codec(codec="copy", stream="v")
+            builder.codec(codec="copy", stream="s")
+            builder.codec(codec="copy", stream="d")
+            builder.codec(codec="copy", stream="t")
 
-        mapping: list[str] = ["-map", "0", "-map", "-0:a"]
+        builder.map(negative_mapping=False, input_index=0)
+        builder.map(negative_mapping=True, input_index=0, stream="a")
 
         # add audio
         for index, _ in enumerate(audios):
-            mapping.extend(["-map", f"{index + 1}:a:0"])
-
-        metadata: list[str] = []
+            builder.stream_index_map(
+                negative_mapping=False,
+                input_index=index + 1,
+                stream="a",
+                stream_index=0,
+            )
 
         # add corresponding metadata if exists
         for index, stream in enumerate(self.streams):
             if stream.tags.language:
-                metadata.extend(
-                    [f"-metadata:s:a:{index}", f"language={stream.tags.language}"]
+                builder.audio_metadata(
+                    index=index, key="language", value=stream.tags.language
                 )
 
             if stream.tags.title:
-                metadata.extend(
-                    [f"-metadata:s:a:{index}", f"title={stream.tags.title}"]
+                builder.audio_metadata(
+                    index=index, key="title", value=stream.tags.title
                 )
 
-        command: list[str] = [
-            "ffmpeg",
-            *input_params,
-            *options,
-            *codec,
-            *mapping,
-            *metadata,
-            temporary_output_file,
-        ]
+        builder.output(temporary_output_file)
 
         subprocess.run(
-            command, encoding="utf-8", capture_output=True, text=True, check=True
+            builder.command,
+            encoding="utf-8",
+            capture_output=True,
+            text=True,
+            check=True,
         )
 
         temporary_output_file.replace(output_file)

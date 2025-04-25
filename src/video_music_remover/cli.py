@@ -10,6 +10,7 @@ from rich import print as rich_print
 from video_music_remover.common import is_directories_conflicting, supported_file
 from video_music_remover.main import MusicRemoverData, process_files
 from video_music_remover.music_remover_models import MusicRemoverModel
+from video_music_remover.orms import DemucsBuilder, FfmpegBuilder, FfprobeBuilder
 
 app = typer.Typer()
 
@@ -131,11 +132,13 @@ def health_check(debug: Annotated[bool, typer.Option("--debug")] = False) -> Non
     has_error = False
 
     # ffmpeg
+    ffmpeg_builder = FfmpegBuilder.health_check()
+
     if debug:
-        print_debug('running command "ffmpeg -version"')
+        print_debug(f'running command "{ffmpeg_builder.command}"')
     if (
         subprocess.run(
-            ["ffmpeg", "-version"], encoding="utf-8", capture_output=capture_output
+            ffmpeg_builder.command, encoding="utf-8", capture_output=capture_output
         ).returncode
         != 0
     ):
@@ -145,11 +148,14 @@ def health_check(debug: Annotated[bool, typer.Option("--debug")] = False) -> Non
         print_info("ffmpeg installed")
 
     # ffprobe
+    ffprobe_builder = FfprobeBuilder.health_check()
+
     if debug:
-        print_debug('running command "ffprobe -version"')
+        print_debug(f'running command "{ffprobe_builder.command}"')
+
     if (
         subprocess.run(
-            ["ffprobe", "-version"], encoding="utf-8", capture_output=capture_output
+            ffprobe_builder.command, encoding="utf-8", capture_output=capture_output
         ).returncode
         != 0
     ):
@@ -159,11 +165,13 @@ def health_check(debug: Annotated[bool, typer.Option("--debug")] = False) -> Non
         print_info("ffprobe installed")
 
     # demucs machine learning model
+    demucs_builder = DemucsBuilder.health_check()
+
     if debug:
-        print_debug('running command "uv run demucs -h"')
+        print_debug(f'running command "{demucs_builder.command}"')
 
     ffmpeg_health_check = subprocess.run(
-        ["demucs", "-h"], encoding="utf-8", capture_output=capture_output
+        demucs_builder.command, encoding="utf-8", capture_output=capture_output
     )
     if ffmpeg_health_check.returncode != 0:
         print_error("demucs not installed", prefix=True)

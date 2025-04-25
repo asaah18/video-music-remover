@@ -54,7 +54,7 @@ class DemucsMusicRemover(MusicRemover, ABC):
         pass
 
     def _get_default_output_directory(self) -> Path:
-        return Path("separated")
+        return Path("separated").resolve()
 
     def _get_no_music_audio_path(self, video_path: Path) -> Path:
         return self._output_directory.joinpath(

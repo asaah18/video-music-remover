@@ -87,25 +87,13 @@ class HTDemucsMusicRemover(DemucsMusicRemover):
         return "htdemucs"
 
 
-class MDXDemucsMusicRemover(DemucsMusicRemover):
-    """
-    the previous Demucs model
-    """
-
-    def _get_model(self) -> DemucsModels:
-        return "mdx_extra_q"
-
-
 class MusicRemoverModel(str, Enum):
     HT_DEMUCS = "ht_demucs"
-    MDX_DEMUCS = "mdx_demucs"
 
     @property
     def related_class(self) -> Type[MusicRemover]:
         match self:
             case MusicRemoverModel.HT_DEMUCS:
                 return HTDemucsMusicRemover
-            case MusicRemoverModel.MDX_DEMUCS:
-                return MDXDemucsMusicRemover
             case _:
                 raise ValueError("Invalid value")

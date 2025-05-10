@@ -4,7 +4,9 @@ from typing import List, Literal, Optional, Type
 from typing_extensions import Self
 
 Stream: Type[str] = Literal["v", "a", "s", "d", "t"]
-DemucsModels: Type[str] = Literal["htdemucs", "mdx_extra_q"]
+DemucsModels: Type[str] = Literal[
+    "htdemucs", "htdemucs_ft", "mdx", "mdx_extra", "mdx_extra_q"
+]
 
 
 class FfmpegBuilder:

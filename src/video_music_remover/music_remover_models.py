@@ -136,3 +136,29 @@ class MusicRemoverModel(str, Enum):
                 return MDXExtraDemucsMusicRemover
             case _:
                 raise ValueError("Invalid value")
+
+    @staticmethod
+    def autocompletion() -> list[tuple[str, str]]:
+        """
+        CLI autocompletion
+
+        :returns a list of tuples with name and description
+        """
+        return [
+            (
+                MusicRemoverModel.HT_DEMUCS.value,
+                "demucs model | first version of Hybrid Transformer Demucs",
+            ),
+            (
+                MusicRemoverModel.HT_DEMUCS_FT.value,
+                "demucs model | fine-tuned version of htdemucs, separation will take 4 times more time but might be a bit better",
+            ),
+            (
+                MusicRemoverModel.MDX_DEMUCS.value,
+                "demucs model | trained only on MusDB HQ, winning model on track A at the MDX challenge",
+            ),
+            (
+                MusicRemoverModel.MDX_EXTRA_DEMUCS.value,
+                "demucs model | trained with extra training data (including MusDB test set), ranked 2nd on the track B of the MDX challenge",
+            ),
+        ]

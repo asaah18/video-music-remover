@@ -72,6 +72,12 @@ def print_success(message: str) -> None:
     rich_print(f"[bold green]{message}[/bold green]")
 
 
+def autocompletion(incomplete: str):
+    for name, help_text in MusicRemoverModel.autocompletion():
+        if name.startswith(incomplete):
+            yield (name, help_text)
+
+
 @app.command()
 def remove_music(
     input_path: Annotated[
@@ -102,7 +108,10 @@ def remove_music(
         ),
     ] = None,
     model: Annotated[
-        MusicRemoverModel, typer.Option(help="the machine learning model to use")
+        MusicRemoverModel,
+        typer.Option(
+            help="the machine learning model to use", autocompletion=autocompletion
+        ),
     ] = MusicRemoverModel.HT_DEMUCS,
 ):
     """

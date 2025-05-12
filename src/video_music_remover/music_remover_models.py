@@ -79,33 +79,86 @@ class DemucsMusicRemover(MusicRemover, ABC):
 
 class HTDemucsMusicRemover(DemucsMusicRemover):
     """
-    the latest Hybrid Transformer Demucs model.
-    In some cases, this model can actually perform worse than previous models
+    first version of Hybrid Transformer Demucs.
+
+    Trained on MusDB + 800 songs. Default model
     """
 
     def _get_model(self) -> DemucsModels:
         return "htdemucs"
 
 
-class MDXDemucsMusicRemover(DemucsMusicRemover):
+class HTDemucsFTMusicRemover(DemucsMusicRemover):
     """
-    the previous Demucs model
+    fine-tuned version of htdemucs, separation will take 4 times more time but might be a bit better.
+
+    Same training set as htdemucs.
     """
 
     def _get_model(self) -> DemucsModels:
-        return "mdx_extra_q"
+        return "htdemucs_ft"
+
+
+class MDXDemucsMusicRemover(DemucsMusicRemover):
+    """
+    trained only on MusDB HQ, winning model on track A at the MDX challenge.
+    """
+
+    def _get_model(self) -> DemucsModels:
+        return "mdx"
+
+
+class MDXExtraDemucsMusicRemover(DemucsMusicRemover):
+    """
+    trained with extra training data (including MusDB test set), ranked 2nd on the track B of the MDX challenge.
+    """
+
+    def _get_model(self) -> DemucsModels:
+        return "mdx_extra"
 
 
 class MusicRemoverModel(str, Enum):
     HT_DEMUCS = "ht_demucs"
+    HT_DEMUCS_FT = "ht_demucs_ft"
     MDX_DEMUCS = "mdx_demucs"
+    MDX_EXTRA_DEMUCS = "mdx_extra_demucs"
 
     @property
     def related_class(self) -> Type[MusicRemover]:
         match self:
             case MusicRemoverModel.HT_DEMUCS:
                 return HTDemucsMusicRemover
+            case MusicRemoverModel.HT_DEMUCS_FT:
+                return HTDemucsFTMusicRemover
             case MusicRemoverModel.MDX_DEMUCS:
                 return MDXDemucsMusicRemover
+            case MusicRemoverModel.MDX_EXTRA_DEMUCS:
+                return MDXExtraDemucsMusicRemover
             case _:
                 raise ValueError("Invalid value")
+
+    @staticmethod
+    def autocompletion() -> list[tuple[str, str]]:
+        """
+        CLI autocompletion
+
+        :returns a list of tuples with name and description
+        """
+        return [
+            (
+                MusicRemoverModel.HT_DEMUCS.value,
+                "demucs model | first version of Hybrid Transformer Demucs",
+            ),
+            (
+                MusicRemoverModel.HT_DEMUCS_FT.value,
+                "demucs model | fine-tuned version of htdemucs, separation will take 4 times more time but might be a bit better",
+            ),
+            (
+                MusicRemoverModel.MDX_DEMUCS.value,
+                "demucs model | trained only on MusDB HQ, winning model on track A at the MDX challenge",
+            ),
+            (
+                MusicRemoverModel.MDX_EXTRA_DEMUCS.value,
+                "demucs model | trained with extra training data (including MusDB test set), ranked 2nd on the track B of the MDX challenge",
+            ),
+        ]

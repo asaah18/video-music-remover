@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added CHANGELOG.md file by @asaah18 [#102](https://github.com/asaah18/video-music-remover/pull/102)
+- Added CHANGELOG.md file by @asaah18 [#103](https://github.com/asaah18/video-music-remover/pull/103)
 
 ### Changed
 

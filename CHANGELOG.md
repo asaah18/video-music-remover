@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0](https://github.com/asaah18/video-music-remover/releases/tag/v1.0) - 2025-05-24
+## [1.0.0](https://github.com/asaah18/video-music-remover/releases/tag/1.0) - 2025-05-24
 
 ### Added
 
@@ -19,8 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Bump typer version from 0.15.1 to 0.15.4 to fix issue when running the app by
   @asaah18 [#99](https://github.com/asaah18/video-music-remover/pull/99)
-
-**Full Changelog**: https://github.com/asaah18/video-music-remover/commits/v1.0
 
 ## [0.6.0](https://github.com/asaah18/video-music-remover/releases/tag/v0.6) - 2025-05-12
 
@@ -50,8 +48,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored resolve value of method "_get_default_output_directory" in "DemucsMusicRemover" class by
   @asaah18 [#84](https://github.com/asaah18/video-music-remover/pull/84)
 
-**Full Changelog**: https://github.com/asaah18/video-music-remover/commits/v0.6
-
 ## [0.5.1](https://github.com/asaah18/video-music-remover/releases/tag/v0.5.1) - 2025-04-20
 
 __first release__
@@ -75,5 +71,3 @@ __first release__
     - Video's other tracks and metadata are kept intact.
 - Added a CLI command for healthcheck with debug option by @asaah18.
 - Added a CLI command for checking version by @asaah18.
-
-**Full Changelog**: https://github.com/asaah18/video-music-remover/commits/v0.5.1

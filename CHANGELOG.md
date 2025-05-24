@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump typer version from 0.15.1 to 0.15.4 to fix issue when running the app by
   @asaah18 [#99](https://github.com/asaah18/video-music-remover/pull/99)
 
+**Full Changelog**: https://github.com/asaah18/video-music-remover/commits/v1.0
+
 ## [0.6.0](https://github.com/asaah18/video-music-remover/releases/tag/v0.6) - 2025-05-12
 
 ### Added

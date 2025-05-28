@@ -12,7 +12,9 @@ from video_music_remover.main import MusicRemoverData, process_files
 from video_music_remover.music_remover_models import MusicRemoverModel
 from video_music_remover.orms import DemucsBuilder, FfmpegBuilder, FfprobeBuilder
 
-app = typer.Typer()
+app = typer.Typer(
+    help="A powerful Python tool to remove music from videos while preserving speech and other sounds using advanced machine learning models"
+)
 
 
 def cli_supported_file(ctx: typer.Context, value: Path) -> Path | None:
@@ -146,6 +148,7 @@ def remove_music(
 
 @app.command()
 def health_check(debug: Annotated[bool, typer.Option("--debug")] = False) -> None:
+    """check if the tool is installed properly -including system dependencies-"""
     capture_output = not debug
     has_error = False
 

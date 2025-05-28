@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added an option to delete original video after processing it and producing the output video by
   @asaah18 [#109](https://github.com/asaah18/video-music-remover/pull/109)
+- Added description for CLI command by
+  @asaah18 [#110](https://github.com/asaah18/video-music-remover/pull/110)
 
 ## [1.0.0](https://github.com/asaah18/video-music-remover/releases/tag/1.0) - 2025-05-24
 

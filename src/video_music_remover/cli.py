@@ -113,6 +113,12 @@ def remove_music(
             help="the machine learning model to use", autocompletion=autocompletion
         ),
     ] = MusicRemoverModel.HT_DEMUCS,
+    delete_original: Annotated[
+        bool,
+        typer.Option(
+            help="delete original file after processing it and producing the output video"
+        ),
+    ] = False,
 ):
     """
     remove music from a directory with videos or a single video
@@ -129,9 +135,12 @@ def remove_music(
         logger.addHandler(file_handler)
 
     process_files(
-        MusicRemoverData(input_path=input_path, output_path=output_path),
+        music_remover_data=MusicRemoverData(
+            input_path=input_path, output_path=output_path
+        ),
         model=model.related_class,
         logger=logger,
+        delete_original=delete_original,
     )
 
 

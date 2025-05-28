@@ -69,6 +69,7 @@ def remove_music_from_video(
     file: RemoveMusicFile,
     music_remover_class: Type[MusicRemover],
     event_dispatcher: MusicRemoveEventDispatcher,
+    delete_original: bool,
 ) -> None:
     event_dispatcher.video_processing_started(original_video=file.original_video)
     video_processor = VideoProcessor(file.original_video)
@@ -119,6 +120,18 @@ def remove_music_from_video(
     event_dispatcher.video_processing_finished(
         original_video=file.original_video, new_video=file.no_music_video
     )
+
+    # post-processing
+    if delete_original:
+        event_dispatcher.delete_original_video_started(
+            original_video=file.original_video
+        )
+
+        file.original_video.unlink()
+
+        event_dispatcher.delete_original_video_finished(
+            original_video=file.original_video
+        )
 
 
 class MusicRemoverData(BaseModel):
@@ -180,6 +193,7 @@ class MusicRemoverData(BaseModel):
 
 def process_files(
     music_remover_data: MusicRemoverData,
+    delete_original: bool,
     model: Type[MusicRemover],
     logger: Optional[Logger] = None,
 ) -> None:
@@ -219,6 +233,7 @@ def process_files(
                     file=original_video,
                     music_remover_class=model,
                     event_dispatcher=event_dispatcher,
+                    delete_original=delete_original,
                 )
             except CalledProcessError as e:
                 excluded_files.append(original_video.original_video)
@@ -239,4 +254,5 @@ def process_files(
             ),
             music_remover_class=model,
             event_dispatcher=event_dispatcher,
+            delete_original=delete_original,
         )

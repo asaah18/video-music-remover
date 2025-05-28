@@ -34,6 +34,14 @@ class MusicRemoverObserver(ABC):
     def video_processing_finished(self, original_video: Path, new_video: Path) -> None:
         pass
 
+    @abstractmethod
+    def delete_original_video_started(self, original_video: Path) -> None:
+        pass
+
+    @abstractmethod
+    def delete_original_video_finished(self, original_video: Path) -> None:
+        pass
+
 
 class MusicRemoveEventDispatcher:
     def __init__(self, observers: list[MusicRemoverObserver] = None) -> None:
@@ -82,6 +90,14 @@ class MusicRemoveEventDispatcher:
                 original_video=original_video, new_video=new_video
             )
 
+    def delete_original_video_started(self, original_video: Path) -> None:
+        for observer in self.__observers:
+            observer.delete_original_video_started(original_video=original_video)
+
+    def delete_original_video_finished(self, original_video: Path) -> None:
+        for observer in self.__observers:
+            observer.delete_original_video_finished(original_video=original_video)
+
 
 # observers
 class LogObserver(MusicRemoverObserver):
@@ -120,6 +136,16 @@ class LogObserver(MusicRemoverObserver):
     def video_processing_finished(self, original_video: Path, new_video: Path) -> None:
         self.logger.info(f'"{original_video.name}": Processing finished')
 
+    def delete_original_video_started(self, original_video: Path) -> None:
+        self.logger.info(
+            f'"{original_video.name}": Post-Processing(optional): deleting original video...'
+        )
+
+    def delete_original_video_finished(self, original_video: Path) -> None:
+        self.logger.info(
+            f'"{original_video.name}": Post-Processing(optional): original video deleted successfully'
+        )
+
 
 class PrintObserver(MusicRemoverObserver):
     def video_processing_started(self, original_video: Path) -> None:
@@ -147,3 +173,13 @@ class PrintObserver(MusicRemoverObserver):
 
     def video_processing_finished(self, original_video: Path, new_video: Path) -> None:
         print(f'"{original_video.name}": Processing finished')
+
+    def delete_original_video_started(self, original_video: Path) -> None:
+        print(
+            f'"{original_video.name}": Post-Processing(optional): deleting original video...'
+        )
+
+    def delete_original_video_finished(self, original_video: Path) -> None:
+        print(
+            f'"{original_video.name}": Post-Processing(optional): original video deleted successfully'
+        )

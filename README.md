@@ -26,6 +26,7 @@ language tracks or commentary audio tracks.
 - **Multiple Audio Tracks Support**: Automatically processes all audio tracks in the input video
 - **Simple CLI Interface**: Easy-to-use command-line interface
 - **Logging Support**: Optional logging for tracking processing progress
+- **Original File Management**: Option to delete original files after processing
 
 ## Supported Formats
 
@@ -92,6 +93,12 @@ Enable logging to a file:
 video-music-remover remove-music input_video.mp4 output_directory/ --log processing.log
 ```
 
+Delete original files after successful processing:
+
+```shell
+video-music-remover remove-music input_video.mp4 output_directory/ --delete-original
+```
+
 ### Health Check
 
 Verify that all dependencies are correctly installed:
@@ -125,6 +132,7 @@ The program processes videos through the following steps:
 3. **Audio Processing**: Preserves the vocal tracks and removes the music tracks
 4. **Video Reconstruction**: Creates a new video with the original video track and the processed audio tracks while
    preserving other streams and metadata
+5. **Original File Handling**: Optionally deletes original files when using `--delete-original`
 
 The resulting video will have the same visual quality but with background music removed while preserving speech and
 other sounds.

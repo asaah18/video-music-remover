@@ -16,7 +16,7 @@ from video_music_remover.common import (
     resolve_paths_factory,
     supported_file,
 )
-from video_music_remover.orms import FfmpegBuilder, FfprobeBuilder
+from video_music_remover.orms.ffmpeg import FfmpegBuilder, FfprobeBuilder
 
 
 class AudioStreamTag(BaseModel):

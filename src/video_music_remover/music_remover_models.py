@@ -1,4 +1,3 @@
-import subprocess
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
@@ -6,7 +5,7 @@ from typing import Optional, Type
 
 from pydantic import DirectoryPath, FilePath, validate_call
 
-from video_music_remover.orms import DemucsBuilder, DemucsModels
+from video_music_remover.orms.demucs import DemucsBuilder, DemucsModels
 
 
 class MusicRemover(ABC):
@@ -40,7 +39,7 @@ class MusicRemover(ABC):
         """
         separate vocal from music using machine learning model
 
-        :exception subprocess.CalledProcessError
+        :exception RuntimeError
         """
         pass
 
@@ -68,13 +67,14 @@ class DemucsMusicRemover(MusicRemover, ABC):
         demucs_builder.model(self._get_model())
         demucs_builder.output_directory(self._output_directory)
 
-        remove_music_command: list[str] = demucs_builder.command
+        demucs_builder.separate()
 
-        subprocess.run(remove_music_command, encoding="utf-8", check=True)
         # raise exception if vocal sound is not created
         # exception raised manually because demucs command doesn't return error code
         if not self.no_music_sound.exists():
-            raise subprocess.CalledProcessError(returncode=1, cmd=remove_music_command)
+            raise RuntimeError(
+                f"The separation process did not create the expected vocal stems in output directory: {str(self.no_music_sound)}"
+            )
 
 
 class HTDemucsMusicRemover(DemucsMusicRemover):

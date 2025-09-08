@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added description for CLI command by
   @asaah18 [#110](https://github.com/asaah18/video-music-remover/pull/110)
 
+### Changed
+
+- Used python API of demucs instead of CLI API by
+  @asaah18 [#119](https://github.com/asaah18/video-music-remover/pull/119)
+
 ## [1.0.0](https://github.com/asaah18/video-music-remover/releases/tag/1.0) - 2025-05-24
 
 ### Added

@@ -4,9 +4,6 @@ from typing import List, Literal, Optional, Type
 from typing_extensions import Self
 
 Stream: Type[str] = Literal["v", "a", "s", "d", "t"]
-DemucsModels: Type[str] = Literal[
-    "htdemucs", "htdemucs_ft", "mdx", "mdx_extra", "mdx_extra_q"
-]
 
 
 class FfmpegBuilder:
@@ -115,50 +112,3 @@ class FfprobeBuilder:
         instance = cls()
         instance.version()
         return instance
-
-
-class DemucsBuilder:
-    def __init__(self, file: Optional[Path] = None) -> None:
-        self.__command: List[str] = ["demucs"]
-        self.__file = file
-
-    @property
-    def command(self) -> List[str]:
-        command = self.__command.copy()
-        if self.__file:
-            command.append(str(self.__file))
-
-        return command
-
-    def help(self) -> None:
-        self.__command.append("-h")
-
-    @classmethod
-    def health_check(cls) -> Self:
-        instance = cls()
-        instance.help()
-        return instance
-
-    def two_stems(self, stem: Literal["vocals"]) -> None:
-        """Only separate audio into {STEM} and no_{STEM}."""
-        self.__command.extend(["--two-stems", stem])
-
-    def model(self, model: DemucsModels) -> None:
-        """Pretrained model name or signature. Default is htdemucs"""
-        self.__command.extend(["-n", model])
-
-    def wav_output(self, size: Literal["int24", "float32"]) -> None:
-        """Save wav output as either int24 or float32(2x bigger) wav"""
-        self.__command.append(f"--{size}")
-
-    def save_as(self, extension: Literal["mp3", "flac"]) -> None:
-        """Convert the output wavs to mp3 or flac"""
-        self.__command.append(f"--{extension}")
-
-    def output_directory(self, directory: Path) -> None:
-        """
-        Folder where to put extracted tracks.
-
-        A subfolder with the model name will be created.
-        """
-        self.__command.extend(["-o", directory])

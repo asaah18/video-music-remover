@@ -1,4 +1,5 @@
 import importlib.metadata
+import importlib.util
 import logging
 import subprocess
 from pathlib import Path
@@ -10,7 +11,7 @@ from rich import print as rich_print
 from video_music_remover.common import is_directories_conflicting, supported_file
 from video_music_remover.main import MusicRemoverData, process_files
 from video_music_remover.music_remover_models import MusicRemoverModel
-from video_music_remover.orms import DemucsBuilder, FfmpegBuilder, FfprobeBuilder
+from video_music_remover.orms.ffmpeg import FfmpegBuilder, FfprobeBuilder
 
 app = typer.Typer(
     help="A powerful Python tool to remove music from videos while preserving speech and other sounds using advanced machine learning models"
@@ -185,20 +186,15 @@ def health_check(debug: Annotated[bool, typer.Option("--debug")] = False) -> Non
     else:
         print_info("ffprobe installed")
 
-    # demucs machine learning model
-    demucs_builder = DemucsBuilder.health_check()
-
+    # demucs machine learning model, healthcheck by trying to import demucs
     if debug:
-        print_debug(f'running command "{demucs_builder.command}"')
+        print_debug('trying to import "demucs"')
 
-    ffmpeg_health_check = subprocess.run(
-        demucs_builder.command, encoding="utf-8", capture_output=capture_output
-    )
-    if ffmpeg_health_check.returncode != 0:
+    if importlib.util.find_spec("demucs"):
+        print_info("demucs installed")
+    else:
         print_error("demucs not installed", prefix=True)
         has_error = True
-    else:
-        print_info("demucs installed")
 
     if has_error:
         print_error("There are some issues", prefix=False)

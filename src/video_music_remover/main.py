@@ -200,20 +200,14 @@ def process_files(
     excluded_files: list[Path] = []
 
     def get_video() -> RemoveMusicFile | None:
-        if logger:
-            logger.info(
-                f'Looking for file to process in folder "{music_remover_data.input_path}"...'
-            )
-        print(
-            f'Looking for file to process in folder "{music_remover_data.input_path}"...'
-        )
+        event_dispatcher.scan_directory(directory=music_remover_data.input_path)
 
         video = music_remover_data.get_video(excluded_files=excluded_files)
 
-        if video is None:
-            if logger:
-                logger.info("There's no file to process")
-            print("There's no file to process")
+        event_dispatcher.scan_result(
+            directory=music_remover_data.input_path,
+            file=video.original_video if video else None,
+        )
 
         return video
 

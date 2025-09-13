@@ -9,6 +9,14 @@ class MusicRemoverObserver(ABC):
         pass
 
     @abstractmethod
+    def scan_directory(self, directory: Path) -> None:
+        pass
+
+    @abstractmethod
+    def scan_result(self, directory: Path, file: Path | None) -> None:
+        pass
+
+    @abstractmethod
     def video_processing_started(self, original_video: Path) -> None:
         pass
 
@@ -65,6 +73,14 @@ class MusicRemoveEventDispatcher:
     def mass_processing_started(self, directory: Path) -> None:
         for observer in self.__observers:
             observer.mass_processing_started(directory=directory)
+
+    def scan_directory(self, directory: Path) -> None:
+        for observer in self.__observers:
+            observer.scan_directory(directory=directory)
+
+    def scan_result(self, directory: Path, file: Path | None) -> None:
+        for observer in self.__observers:
+            observer.scan_result(directory=directory, file=file)
 
     def video_processing_started(self, original_video: Path) -> None:
         for observer in self.__observers:
@@ -133,6 +149,13 @@ class LogObserver(MusicRemoverObserver):
     def mass_processing_started(self, directory: Path) -> None:
         self.logger.info("Mass processing started")
 
+    def scan_directory(self, directory: Path) -> None:
+        self.logger.info(f'Looking for file to process in folder "{directory}"...')
+
+    def scan_result(self, directory: Path, file: Path | None) -> None:
+        if file is None:
+            self.logger.info("There's no file to process")
+
     def video_processing_started(self, original_video: Path) -> None:
         self.logger.info(f'Processing file "{original_video.name}"')
 
@@ -187,6 +210,13 @@ class LogObserver(MusicRemoverObserver):
 class PrintObserver(MusicRemoverObserver):
     def mass_processing_started(self, directory: Path) -> None:
         print("Mass processing started")
+
+    def scan_directory(self, directory: Path) -> None:
+        print(f'Looking for file to process in folder "{directory}"...')
+
+    def scan_result(self, directory: Path, file: Path | None) -> None:
+        if file is None:
+            print("There's no file to process")
 
     def video_processing_started(self, original_video: Path) -> None:
         print(f'Processing file "{original_video.name}"')

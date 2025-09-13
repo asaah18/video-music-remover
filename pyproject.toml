@@ -27,6 +27,7 @@ classifiers = [
 Homepage = "https://github.com/asaah18/video-music-remover"
 Repository = "https://github.com/asaah18/video-music-remover.git"
 Issues = "https://github.com/asaah18/video-music-remover/issues"
+changelog = "https://github.com/asaah18/video-music-remover/blob/main/CHANGELOG.md"
 
 [project.scripts]
 video-music-remover = "video_music_remover:cli"

@@ -200,20 +200,14 @@ def process_files(
     excluded_files: list[Path] = []
 
     def get_video() -> RemoveMusicFile | None:
-        if logger:
-            logger.info(
-                f'Looking for file to process in folder "{music_remover_data.input_path}"...'
-            )
-        print(
-            f'Looking for file to process in folder "{music_remover_data.input_path}"...'
-        )
+        event_dispatcher.scan_directory(directory=music_remover_data.input_path)
 
         video = music_remover_data.get_video(excluded_files=excluded_files)
 
-        if video is None:
-            if logger:
-                logger.info("There's no file to process")
-            print("There's no file to process")
+        event_dispatcher.scan_result(
+            directory=music_remover_data.input_path,
+            file=video.original_video if video else None,
+        )
 
         return video
 
@@ -223,9 +217,7 @@ def process_files(
         event_dispatcher.attach(LogObserver(logger))
 
     if music_remover_data.input_path.is_dir():
-        if logger:
-            logger.info("Mass processing started")
-        print("Mass processing started")
+        event_dispatcher.mass_processing_started(music_remover_data.input_path)
 
         while original_video := get_video():
             try:
@@ -235,16 +227,16 @@ def process_files(
                     event_dispatcher=event_dispatcher,
                     delete_original=delete_original,
                 )
-            except CalledProcessError as e:
+            except CalledProcessError as exception:
                 excluded_files.append(original_video.original_video)
-                message = f"a cli error occurred while processing file {original_video.original_video}, skipping the file. error: {e}"
-                print(message)
-                if logger:
-                    logger.error(message)
 
-        if logger:
-            logger.info("Mass processing finished")
-        print("Mass processing finished")
+                event_dispatcher.skipping_failed_file(
+                    original_video=original_video.original_video, exception=exception
+                )
+
+        event_dispatcher.mass_processing_finished(
+            directory=music_remover_data.input_path
+        )
     else:
         # input is an existing file
         remove_music_from_video(

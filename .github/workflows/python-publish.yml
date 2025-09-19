@@ -1,65 +1,35 @@
 # This workflow will upload a Python Package to PyPI when a release is created
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python#publishing-to-package-registries
+# For more information see: https://docs.astral.sh/uv/guides/integration/github/#publishing-to-pypi
 
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-name: Upload Python Package
+name: "Upload Python Package"
 
 on:
-  release:
-    types: [published]
-
-permissions:
-  contents: read
+  push:
+    tags:
+      # Publish on any tag starting with a `v`, e.g., v0.1.0
+      - v*
 
 jobs:
-  release-build:
+  run:
     runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: "pyproject.toml"
-
-      - name: Build release distributions
-        run: |
-          uv build
-
-      - name: Upload distributions
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-dists
-          path: dist/
-
-  pypi-publish:
-    runs-on: ubuntu-latest
-    needs:
-      - release-build
-    permissions:
-      # IMPORTANT: this permission is mandatory for trusted publishing
-      id-token: write
-
-    # Dedicated environments with protections for publishing are strongly recommended.
-    # For more information, see: https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#deployment-protection-rules
     environment:
       name: pypi
-
+    permissions:
+      id-token: write
+      contents: read
     steps:
-      - name: Retrieve release distributions
-        uses: actions/download-artifact@v4
-        with:
-          name: release-dists
-          path: dist/
-
-      - name: Publish release distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: dist/
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Install Python 3.13
+        run: uv python install 3.13
+      - name: Build
+        run: uv build
+      # Check that basic features work and we didn't miss to include crucial files
+      #      - name: Smoke test (wheel)
+      #        run: uv run --isolated --no-project --with dist/*.whl tests/smoke_test.py
+      #      - name: Smoke test (source distribution)
+      #        run: uv run --isolated --no-project --with dist/*.tar.gz tests/smoke_test.py
+      - name: Publish
+        run: uv publish

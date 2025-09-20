@@ -172,7 +172,7 @@ class MusicRemoverData(BaseModel):
         remove_music_file = None
 
         while remove_music_file is None:
-            video = next(iterable, None)
+            video: Path | None = next(iterable, None)
             if video is None:
                 break
 
@@ -227,7 +227,9 @@ def process_files(
                     event_dispatcher=event_dispatcher,
                     delete_original=delete_original,
                 )
-            except CalledProcessError as exception:
+            except (
+                CalledProcessError and UnicodeDecodeError and RuntimeError
+            ) as exception:
                 excluded_files.append(original_video.original_video)
 
                 event_dispatcher.skipping_failed_file(

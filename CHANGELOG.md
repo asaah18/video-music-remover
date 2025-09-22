@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Skip failing file processing while batch processing -that happens because the exceptions UnicodeDecodeError and
-  RuntimeError- by @asaah18 [#123](https://github.com/asaah18/video-music-remover/pull/123)
+  RuntimeError- by @asaah18 [#125](https://github.com/asaah18/video-music-remover/pull/125)
 
 ## [1.1.2](https://github.com/asaah18/video-music-remover/releases/tag/v1.1.2) - 2025-09-20 - [YANKED]
 

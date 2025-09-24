@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- make the command "python -m video_music_remover" run CLI. by @asaah18 [#128](https://github.com/asaah18/video-music-remover/pull/128)
+
 ## [1.1.3](https://github.com/asaah18/video-music-remover/releases/tag/v1.1.3) - 2025-09-22
 
 ### Fixed

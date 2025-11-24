@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- make the command "python -m video_music_remover" run CLI. by @asaah18 [#128](https://github.com/asaah18/video-music-remover/pull/128)
+- make the command "python -m video_music_remover" run CLI. by
+  @asaah18 [#128](https://github.com/asaah18/video-music-remover/pull/128)
 
 ## [1.1.3](https://github.com/asaah18/video-music-remover/releases/tag/v1.1.3) - 2025-09-22
 
@@ -17,12 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Skip failing file processing while batch processing -that happens because the exceptions UnicodeDecodeError and
   RuntimeError- by @asaah18 [#125](https://github.com/asaah18/video-music-remover/pull/125)
 
+### Docs
+
+- added info about internet usage in README.md by
+  @asaah18 [#129](https://github.com/asaah18/video-music-remover/pull/129)
+
 ## [1.1.2](https://github.com/asaah18/video-music-remover/releases/tag/v1.1.2) - 2025-09-20 - [YANKED]
 
 ### Fixed
 
 ~~- Skip failing file processing while batch processing -that happens because the exceptions UnicodeDecodeError and
-  RuntimeError- by @asaah18 [#123](https://github.com/asaah18/video-music-remover/pull/123)~~
+RuntimeError- by @asaah18 [#123](https://github.com/asaah18/video-music-remover/pull/123)~~
 
 ## [1.1.1](https://github.com/asaah18/video-music-remover/releases/tag/1.1.1) - 2025-09-13
 

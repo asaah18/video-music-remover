@@ -18,6 +18,9 @@ This is particularly useful for Muslim people and anyone who needs to remove mus
 The tool automatically processes all audio tracks in the input file, making it ideal for videos with multiple
 language tracks or commentary audio tracks.
 
+**Note**: An internet connection is required the first time you use a model, as it needs to be downloaded. Once
+downloaded, the tool can be used completely offline.
+
 ## Features
 
 - **Batch Processing**: Process multiple videos in a directory with a single command
@@ -126,9 +129,11 @@ video-music-remover version
 The program processes videos through the following steps:
 
 1. **Audio Extraction**: Extracts all audio tracks from the input video
-   - if input is file, the new video file in the output directory will be replaced if exists
-   - if input is a directory, only supported files that doesn't exist in the output directory will be processed
-2. **Music Separation**: Uses the selected demucs model to separate vocals from music in all extracted audio tracks
+    - if input is file, the new video file in the output directory will be replaced if it exists
+    - if input is a directory, only supported files that don't exist in the output directory will be processed
+2. **Music Separation**: Uses the selected demucs model to separate vocals from music in all extracted audio tracks.
+    - **Note**: The first time a model is used, it will be downloaded automatically. Subsequent uses will be offline
+      from the local cache.
 3. **Audio Processing**: Preserves the vocal tracks and removes the music tracks
 4. **Video Reconstruction**: Creates a new video with the original video track and the processed audio tracks while
    preserving other streams and metadata

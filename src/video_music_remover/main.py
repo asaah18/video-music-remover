@@ -176,6 +176,9 @@ class MusicRemoverData(BaseModel):
             if video is None:
                 break
 
+            if video.name.startswith("."):
+                continue
+
             if video in excluded_files:
                 continue
 
